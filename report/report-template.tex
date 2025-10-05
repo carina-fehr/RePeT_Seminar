@@ -26,7 +26,7 @@
 
 % TODO
 \author{A. Student (\textit{remember to remove ID for the first draft and peer review!})}
-\title{The title (\textit{which should really have more than two words, but should not be longer than two lines})}
+\title{Seminar Report on Express: Lowering the Cost of Metadata-hiding Communication with Cryptographic Privacy}
 \date{\today}
 
 \begin{document}
@@ -34,21 +34,19 @@
 \maketitle
 
 \begin{abstract}
-  \lipsum[1]
+This report studies the reproducibility and performance of Express, a system for metadata-hiding communication. Using two servers, express provides cryptographic security against at most one malicious server and an arbitrary number of malicious clients. The paper presents new protocols that offer low communication overhead, regardless of the number of users, and improved computation costs using symmetric key cryptography. Compared to Pung and Riposte, two previous cryptographically secure systems, express lowers cost and increases message throughput. This makes Express an ideal applications for communication between whisteblowers and journalists.
 \end{abstract}
 
 \section{Introduction}
 \label{sec:intro}
-This sentence is supported by a reference \citep{chaum1981untraceable}.
-This sentence is justified with multiple references \citep{chaum1981untraceable,shamir1979how}.
-\citet{alley2018craft} as well as \citet{strunk1999elements} use in-line references.
+In todays digital landscape, secure communication has become increasingly crucial, with growing capabilites of surveillance and metadata analysis. Secure messaging apps like Signal and Transport Layer Security (TLS) encrypt the content of sent messages, but they do not protect metadata. It is possible to observe who sent and received messages, when and how often they communicated and how much data they exchanged. These information are as sensitive as the message itself and should therefore not be leaked. An option for metadata hiding would be using a TOR browser or SecureDrop, but they are vulnerable to attacks by adversaries that control many network points. Other existing systems to hide metadata either have to high communication cost to be used in reality, or they are have low computation cost but their security gets worse with every round of communication, also making them impractical. \\
+While two servers are required, express still runs with one malicious server. 
+Express' target audience are journalists and whistleblowers. To receive messages, a journalist, also client in the client-server architecture, registers a mailbox with the two servers. 
 
-\lipsum[4]
 
 \section{Background}
 \label{sec:background}
 
-\lipsum[1]
 \begin{theorem}[Incompleteness theorem, \citeauthor{godel1931formal}, \citeyear{godel1931formal}]~\\
     If $c$ be a given recursive, consistent class of formulae, then the
     propositional formula which states that $c$ is consistent is not
@@ -103,6 +101,7 @@ Your ``main content'' can be split into as many sections as needed.
 
 \section{Related work}
 \label{sec:relwork}
+Pung: Pung also focuses on metadata hiding in communication systems. 
 
 Here, you include short descriptions of similar work and explain \textit{how} they are different from the main content you have presented.
 
@@ -130,3 +129,7 @@ For examples of how to do this, please see the DMI guidance: \url{https://dmi.un
 
 
 \end{document}
+
+how to cite: This sentence is supported by a reference \citep{chaum1981untraceable}.
+This sentence is justified with multiple references \citep{chaum1981untraceable,shamir1979how}.
+\citet{alley2018craft} as well as \citet{strunk1999elements} use in-line references.
