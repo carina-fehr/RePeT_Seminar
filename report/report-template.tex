@@ -25,7 +25,7 @@
 \newtheorem{theorem}{Theorem}
 
 % TODO
-\author{A. Student (\textit{remember to remove ID for the first draft and peer review!})}
+\author{Carina Fehr (\textit{remember to remove ID for the first draft and peer review!})}
 \title{Seminar Report on Express: Lowering the Cost of Metadata-hiding Communication with Cryptographic Privacy}
 \date{\today}
 
@@ -41,63 +41,46 @@ This report studies the reproducibility and performance of Express, a system for
 \label{sec:intro}
 In todays digital landscape, secure communication has become increasingly crucial, with growing capabilites of surveillance and metadata analysis. Secure messaging apps like Signal and Transport Layer Security (TLS) encrypt the content of sent messages, but they do not protect metadata. It is possible to observe who sent and received messages, when and how often they communicated and how much data they exchanged. These information are as sensitive as the message itself and should therefore not be leaked. An option for metadata hiding would be using a TOR browser or SecureDrop, but they are vulnerable to attacks by adversaries that control many network points. Other existing systems to hide metadata either have to high communication cost to be used in reality, or they are have low computation cost but their security gets worse with every round of communication, also making them impractical. \\
 While two servers are required, express still runs with one malicious server. 
-Express' target audience are journalists and whistleblowers. To receive messages, a journalist, also client in the client-server architecture, registers a mailbox with the two servers. 
-
+Express' target audience are journalists and whistleblowers. To receive messages, a journalist, also called client in the client-server architecture, registers a mailbox with the two servers. He then receives a address. The journalist can transmit this address to the whistleblower. Now the client can upload a message into the mailbox. No one execept the mailbox owner will know that a message has been sent into this mailbox. Mailbox owners have to check their mailboxes regularly. Express does not hide when a client read from a mailbox, therefore a pattern in the interval of checking could reveal something about acitvity of this mailbox. 
 
 \section{Background}
 \label{sec:background}
+This section explain the concepts of cryptographic privacy and distrubuted point functions, also called DPFS. In the following section, we present how they can be used for Express.
 
-\begin{theorem}[Incompleteness theorem, \citeauthor{godel1931formal}, \citeyear{godel1931formal}]~\\
-    If $c$ be a given recursive, consistent class of formulae, then the
-    propositional formula which states that $c$ is consistent is not
-    $c$-provable; in particular, the consistency of $P$ is unprovable in $P$, it
-    being assumed that $P$ is consistent.
-\end{theorem}
-
-\subsection{First background topic}
+\subsection{Cryptographic privacy}
 \label{subsec:first-background}
-
-\begin{figure}
-    \centering
-    \includegraphics[width= 0.3\textwidth]{figures/privacy-screen}
-    \caption{An example privacy mechanism}
-    \label{fig-privacy-screen}
-\end{figure}
-
-\lipsum[3]
-(See Figure~\ref{fig-privacy-screen}.)
+Cryptographic privacy is a mechanism that guarantees no information leaks. Even after observing many rounds of communication, the adversary knows nothing about whick clients are communicating with each other. A different mechanism is differential privacy. After several rounds of communication, they are not able to keep all metadata secret. Therefore, altough cryptographic privacy is slower, it is more suitable for a frequently used applications.  
 
 
-\subsection{Second background topic}
+
+\subsection{Distributed point function}
 \label{subsec:second-background}
-\lipsum[2]
-(See Table~\ref{tab:example}.)
+A DPF (https://eprint.iacr.org/2023/028.pdf) is a cryptographic algorithm. It splits a function f into function shares that individually hide f. The point function $f_{a,b}(x)$ outputs b at at the point x = a and 0 everywhere else. The two or more parts of the function individually reveal nothing about the function. Express splits the function into two parts, one for each of the servers. Therefore even a malicious server can not tell anything about the function. 
 
-\begin{table}
-	\centering
-	\begin{tabular}{p{3cm}ll}
-		\toprule
-		Header line & Column 2 & Column 3 \\
-		\midrule
-		Content line & 2 & 3 \\
-		Another content line to showcase wrapping of table cells & 2 & 3 \\
-		\bottomrule
-	\end{tabular}
-\caption{An example table}
-\label{tab:example}
-\end{table}
 
-\section{Main content}
+\section{Private Communication in Express}
 \label{sec:main}
 
-Note that you \textit{must} rename this section to indicate \textit{what the content is}.
+Explain how clients send and read messages.
+Describe mailbox registration, writing, and reading steps.
+Emphasize asynchronous operation and lack of global rounds.
 
 
-\section{Another topic in the main content}
+\section{Protecting Privacy and Integrity}
 \label{sec:anohter-topic}
 
-Your ``main content'' can be split into as many sections as needed.
+ auditing, malicious client protection, virtual addressing.
+Explain how these mechanisms maintain security with minimal overhead.
 
+\subsection{Express for Whistleblowing}
+As explained in the previous chapters, Express offers a secure communication option. Outside of the data transfer itself, there are two more safety issues that should be considered. First, we need plausible deniability, second, we need a way to agree on a Mailbox address. 
+
+\subsubsection{plausible deniability / cover traffic}
+If whistleblowers were the only users of Express, it would be obvious that anyone who sent a message over Express had passed on information. This means that many users that are not involved in whistleblowing must also send messages, creating cover traffic. To achieve this, a JavaScript programm can be integrated into a website with high traffic, such as a news site. Every time a user visits this website, a dummy request is sent to the Express servers. The servers generate a key that is not known to any client. This means that these messages cannot be read, but they also cannot be distinguished from those of the whistleblowers. \\
+News websites like New York Times benefit from high cover traffic because whistleblowers feel safer and are more likely to pass on information. This makes such sites particularly suitable for integrating JavaScript. The paper(ref!) does not specify how cover traffic is required exactly, but it should be enough to ensure that real messages remain indistinguishable from the generated ones. The cost and computation times are very low, which can further encourage the use of Express. 
+
+\subsubsection{Dialing}
+To select the mailbox address, the journalist and the whistleblower can meet in person. However, this is often not possible. In this case, a dialling protocol can be used. 
 
 \section{Related work}
 \label{sec:relwork}
@@ -112,7 +95,7 @@ Note that you may include the related work as a subsection in the Background Sec
 
 \section{Conclusion}
 \label{sec:conclusion}
-\lipsum[3]
+
 
 \section{Use of generative digital tools}
 
@@ -133,3 +116,36 @@ For examples of how to do this, please see the DMI guidance: \url{https://dmi.un
 how to cite: This sentence is supported by a reference \citep{chaum1981untraceable}.
 This sentence is justified with multiple references \citep{chaum1981untraceable,shamir1979how}.
 \citet{alley2018craft} as well as \citet{strunk1999elements} use in-line references.
+
+
+Bild einfügen: \begin{figure}
+    \centering
+    \includegraphics[width= 0.3\textwidth]{figures/privacy-screen}
+    \caption{An example privacy mechanism}
+    \label{fig-privacy-screen}
+\end{figure}
+Bild zitieren: (See Figure~\ref{fig-privacy-screen}.)
+
+
+Theorem einfügen: \begin{theorem}[Incompleteness theorem, \citeauthor{godel1931formal}, \citeyear{godel1931formal}]~\\
+    If $c$ be a given recursive, consistent class of formulae, then the
+    propositional formula which states that $c$ is consistent is not
+    $c$-provable; in particular, the consistency of $P$ is unprovable in $P$, it
+    being assumed that $P$ is consistent.
+\end{theorem}
+
+Tabelle einfügen: (See Table~\ref{tab:example}.)
+
+\begin{table}
+	\centering
+	\begin{tabular}{p{3cm}ll}
+		\toprule
+		Header line & Column 2 & Column 3 \\
+		\midrule
+		Content line & 2 & 3 \\
+		Another content line to showcase wrapping of table cells & 2 & 3 \\
+		\bottomrule
+	\end{tabular}
+\caption{An example table}
+\label{tab:example}
+\end{table}
