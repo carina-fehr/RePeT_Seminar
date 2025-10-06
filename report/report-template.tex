@@ -57,15 +57,28 @@ Cryptographic privacy is a mechanism that guarantees no information leaks. Even 
 
 \subsection{Distributed point function}
 \label{subsec:second-background}
-A DPF (https://eprint.iacr.org/2023/028.pdf) is a cryptographic algorithm. It splits a function f into function shares that individually hide f. The point function $f_{a,b}(x)$ outputs b at at the point x = a and 0 everywhere else. The two or more parts of the function individually reveal nothing about the function. Express splits the function into two parts, one for each of the servers. Therefore even a malicious server can not tell anything about the function. 
+A DPF (https://eprint.iacr.org/2023/028.pdf) is a cryptographic algorithm. It splits a function $f$ into function shares that individually hide $f$. The point function $f_{a,b}(x)$ outputs b at at the point x = a and 0 everywhere else. The two or more parts of the function individually reveal nothing about the function. Express splits the function into two parts, one for each of the servers. Therefore even a malicious server can not tell anything about the function. 
 
 
-\section{Private Communication in Express}
+\section{Private Communication in Express} % Explain how clients send and read messages. Describe mailbox registration, writing, and reading steps.Emphasize asynchronous operation and lack of global rounds.
 \label{sec:main}
+In this section, we will explain how an Express client writes messages and how the servers store them.
 
-Explain how clients send and read messages.
-Describe mailbox registration, writing, and reading steps.
-Emphasize asynchronous operation and lack of global rounds.
+\subsection{Express Clients}
+The messages sent by clients should either all be the same size or consist of a predefined set of sizes. If an attacker can extract information from the message size, the system loses security and the cover traffic no longer provides sufficient plausible deniability. 
+
+\subsection{Express Servers}
+To prevent one server from containing all the data, thus representing a single point of failure and not providing adequate security for metadata hiding, multiple servers must be used. One way to achieve this distribution of trust would be to use a large number of servers. This offers the advantage that even if more than one server is malicious, the system can still continue to run.\\
+Express uses only two servers, which in the paper are the Wall Street Journal and the Washington Post. These two must therefore meet stricter security requirements. One difficulty in implementing Express could be censorship. If access to one of the two servers is blocked, the entire application will no longer function. Express is less suitable for countries where news websites, i.e. servers on which Express runs, are often restricted. 
+Another danger is posed by a malicious server. A denial of service attack can originate not only from a client, but also from a server. The server can overwrite the contents of all mailboxes with meaningless content, causing the original content to be lost. However, since the client will realise that the contents of their mailbox are garbage, they can recognise that the system can no longer be trusted. 
+
+\subsubsection{Secret sharing with DPFs}
+As explained in section 2.2, it is possible to split a function into two parts that, on their own, do not reveal anything about the function. 
+If the express servers hold $n$ mailboxes together and each of them contains an element of the finite field $\mathbb{F}$, the totality of all mailboxes can be represented as a vector: $D \in \mathbb{F}^n$. 
+$D$ can therefore be represented as the sum of the two components $D_A+ D_B =D$, where the vector belonging to server A corresponds to $D_A \in \mathbb{F}^n$ and server B's vector corresponds to $D_B \in \mathbb{F}^n$. 
+When the servers receive a new message w, they can both add this vector to their current status: $D_A \leftarrow D_A + w_A \in \mathbb{F}^n$ and equally $D_B \leftarrow D_B + w_B \in \mathbb{F}^n$.
+
+
 
 
 \section{Protecting Privacy and Integrity}
