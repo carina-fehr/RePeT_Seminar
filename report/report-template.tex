@@ -57,35 +57,49 @@ Cryptographic privacy is a mechanism that guarantees no information leaks. Even 
 
 \subsection{Distributed point function}
 \label{subsec:second-background}
-A DPF (https://eprint.iacr.org/2023/028.pdf) is a cryptographic algorithm. It splits a function $f$ into function shares that individually hide $f$. The point function $f_{a,b}(x)$ outputs b at at the point x = a and 0 everywhere else. The two or more parts of the function individually reveal nothing about the function. Express splits the function into two parts, one for each of the servers. Therefore even a malicious server can not tell anything about the function. 
+A DPF (https://eprint.iacr.org/2023/028.pdf) is a cryptographic algorithm. It splits a function $f$ into function shares that individually hide $f$. The point function $f_{a,b}(x)$ outputs $b$ at at the point $x = a$ and 0 everywhere else. The two or more parts of the function individually reveal nothing about the function. Express splits the function into two parts, one for each of the servers. Therefore even a malicious server can not tell anything about the function. 
 
 
 \section{Private Communication in Express} % Explain how clients send and read messages. Describe mailbox registration, writing, and reading steps.Emphasize asynchronous operation and lack of global rounds.
 \label{sec:main}
-In this section, we will explain how an Express client writes messages and how the servers store them.
-
-\subsection{Express Clients}
-The messages sent by clients should either all be the same size or consist of a predefined set of sizes. If an attacker can extract information from the message size, the system loses security and the cover traffic no longer provides sufficient plausible deniability. 
+In this section, we will explain how an Express client writes messages and how the servers store them.  
 
 \subsection{Express Servers}
-To prevent one server from containing all the data, thus representing a single point of failure and not providing adequate security for metadata hiding, multiple servers must be used. One way to achieve this distribution of trust would be to use a large number of servers. This offers the advantage that even if more than one server is malicious, the system can still continue to run.\\
-Express uses only two servers, which in the paper are the Wall Street Journal and the Washington Post. These two must therefore meet stricter security requirements. One difficulty in implementing Express could be censorship. If access to one of the two servers is blocked, the entire application will no longer function. Express is less suitable for countries where news websites, i.e. servers on which Express runs, are often restricted. 
-Another danger is posed by a malicious server. A denial of service attack can originate not only from a client, but also from a server. The server can overwrite the contents of all mailboxes with meaningless content, causing the original content to be lost. However, since the client will realise that the contents of their mailbox are garbage, they can recognise that the system can no longer be trusted. 
-
-\subsubsection{Secret sharing with DPFs}
-As explained in section 2.2, it is possible to split a function into two parts that, on their own, do not reveal anything about the function. 
+\textbf{Secret sharing with DPFs}.
 If the express servers hold $n$ mailboxes together and each of them contains an element of the finite field $\mathbb{F}$, the totality of all mailboxes can be represented as a vector: $D \in \mathbb{F}^n$. 
 $D$ can therefore be represented as the sum of the two components $D_A+ D_B =D$, where the vector belonging to server A corresponds to $D_A \in \mathbb{F}^n$ and server B's vector corresponds to $D_B \in \mathbb{F}^n$. 
-When the servers receive a new message w, they can both add this vector to their current status: $D_A \leftarrow D_A + w_A \in \mathbb{F}^n$ and equally $D_B \leftarrow D_B + w_B \in \mathbb{F}^n$.
+When the servers receive a new message w, they can both add this vector to their current status: $D_A \leftarrow D_A + w_A \in \mathbb{F}^n$ and equally $D_B \leftarrow D_B + w_B \in \mathbb{F}^n$. \\
+By using DPFs, as explained in the following subchapter, the servers do not receive a complete vector, but only a function share. They can evaluate this at any point, i.e. for each mailbox. This gives them the vectors, which they can add to$ D_A$ and $D_B$ as before. 
+\\ \textbf{Distribution of trust}.
+To prevent one server from containing all the data, thus representing a single point of failure and not providing adequate security for metadata hiding, multiple servers must be used. One way to achieve this distribution of trust would be to use a large number of servers. This offers the advantage that even if more than one server is malicious, the system can still continue to run.\\
+Express uses only two servers, which in the paper are the Wall Street Journal and the Washington Post. These two must therefore meet stricter security requirements. One difficulty in implementing Express could be censorship. If access to one of the two servers is blocked, the entire application will no longer function. Express is less suitable for countries where news websites, i.e. servers on which Express runs, are often restricted. 
+\\ \textbf{Malicious server}
+Another danger is posed by a malicious server. A denial of service attack can originate not only from a client, but also from a server. The server can overwrite the contents of all mailboxes with meaningless content, causing the original content to be lost. However, since the client will realise that the contents of their mailbox are garbage, they can recognise that the system can no longer be trusted. 
+
+\subsection{Express Clients}
+If a client wants to write a message $m \in \mathbb{F}$ to a mailbox, it can insert it into a vector of the length of all mailboxes by multiplying it with the $i$-th standard-basis vector $\mathbf{e}_i$. This vector should be zero everywhere except at the location of the targeted mailbox. Mathematically, this can be formulated as follows: $m \cdot \mathbf{e}_i \in \mathbb{F}^n$. This vector must then be split so that one can be sent to each server; i.e. $w_A + w_B = m \cdot \mathbf{e}_i$. However, the costs of these calculations are high. For every message that the client sends, it must have an element in the vector for each mailbox in the system and send it to both servers. 
+A better alternative is to use DPFs, which allows clients to send less data. As explained in section 2.2, it is possible to split a function into two parts that, on their own, do not reveal anything about the function. We call the functions for the two Servers A and B $f_A$ and $f_b$. When added together, they give exactly the value of $f$ at each point. This point function can therefore also be written as follows: $f_{i^*,m}: [N] \rightarrow \mathbb{F}$. $i^*$ is the only point at which this function does not yield zero, but rather $m$. Clients can now generate the shares $f_A$ and $f_B$. Added at any point $i \in [N]$ they result in the DPF: $f_A(i) + f_B(i) = f_{i^*,m}$. Individually, these do not tell an attacker anything about $i^*$, i.e. the mailbox being written to, or about $m$, i.e. the message being transmitted. \\
+The use of DPFs has reduced the size of sent messages to such an extent that, with a security parameter $\lambda$, each part of the function now has a length of $O(\lambda log N + \mid m \mid)$ bits.
+
+The messages sent by clients should either all be the same size or consist of a predefined set of sizes. If an attacker can extract information from the message size, the system loses security and the cover traffic no longer provides sufficient plausible deniability.
 
 
 
-
-\section{Protecting Privacy and Integrity}
-\label{sec:anohter-topic}
-
- auditing, malicious client protection, virtual addressing.
+\section{Protecting Privacy and Integrity} %auditing, malicious client protection, virtual addressing.
 Explain how these mechanisms maintain security with minimal overhead.
+\label{sec:anohter-topic}
+In this section we first show how Express ensures privacy when all clients behave legitimately, and then when at least one is malicious. At the end, we will show how Express can be used as a tool for communication between whistleblowers and journalists.  
+
+\subsection{Privacy with honest clients}
+The previous chapter (3) explained how we can write something secretly to the server. However, an adversary could now check all network traffic. If they compare the contents of all mailboxes after each write, they will not be able to read the message because it is encrypted, but they can find out which client wrote to which mailbox.
+\\To ensure that the metadata is completely hidden, we also need to control who reads the mailboxes. This could be prevented by only allowing reading once all clients have written, i.e. by running the system in batches. Pung and Riposte are based on this concept. However, this severely limits actual usability. Express has therefore proposed a method that does not require synchronised rounds. To achieve this, we must ensure that an attacker cannot view the messages or identify which mailbox has been modified after a message has been sent. The only person entitled to this information is the owner of the mailbox. \\
+Express uses a lightweight cryptographic algorithm based on symmetric cryptography. Before changing the contents of a mailbox, the servers must decrypt it and then re-encrypt it. To do this, both servers receive their keys $k_A$ and $k_B$ from the client when creating a mailbox. After each change, all mailboxes are re-encrypted. This means that an attacker cannot find out which mailbox a message has been stored in unless they have both keys. \\
+A counter is used for encryption. So when re-encryption is required, the previous value is subtracted and the new value added, which is a commutative operation. It is not necessary to re-encrypt after every write, but only if a read has occurred between writes. Otherwise, no one, including an attacker, has obtained any information. This increases the efficiency of encryption. In addition, it is not absolutely necessary for both servers to perform the re-encryption.
+If one of the servers has been corrupted and no longer re-encrypts, the system remains secure.
+
+\subsection{Privacy with malicious clients}
+The techniques presented in the previous chapter only provide security as long as all clients behave honestly. Even a single malicious client can attack and damage both servers. 
+Nothing prevents a client from creating a vector that writes to multiple mailboxes simultaneously. To do this, it creates a DPF whose added vectors $w_A$ and $w_B$, calculated from the functions $f_A$ and $f_B$, are not zero everywhere or in multiple indices. Thus, one message from a malicious client is sufficient to overwrite all mailboxes and thereby delete the original content. Express has introduced an auditing protocol to prevent this. This ensures that each write only updated only one mailbox. Each vector to be inserted must therefore have a zero as an element at every position except one. If the vector does not meet this requirement, it can be discarded, meaning that the write request is rejected by the server and nothing is written to any mailbox.
 
 \subsection{Express for Whistleblowing}
 As explained in the previous chapters, Express offers a secure communication option. Outside of the data transfer itself, there are two more safety issues that should be considered. First, we need plausible deniability, second, we need a way to agree on a Mailbox address. 
