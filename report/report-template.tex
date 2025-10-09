@@ -27,6 +27,7 @@
 % FRAGEN
 % zitat jedes einzelne mal angeben, zb bei Pung?
 % was gehört alles zu seiten 10-12, auch references? 
+% wie viele verwandte themen bei related work? dürfen es auch diese sein, die im paper schon diskutiert wurden? 
 
 % TODO
 \author{Carina Fehr (\textit{remember to remove ID for the first draft and peer review!})}
@@ -38,14 +39,14 @@
 \maketitle
 
 \begin{abstract}
-This report studies the reproducibility and performance of Express, a system for metadata-hiding communication. Using two servers, express ensures cryptographic security against at most one malicious server and an arbitrary number of malicious clients. The paper presents new protocols that offer low communication overhead, regardless of the number of users, and improved computation costs using symmetric key cryptography. Compared to Pung and Riposte, two previous cryptographically secure systems, Express achieves increased message throughput, while maintaining strong privacy guarantees. This makes Express an ideal applications for communication between whisteblowers and journalists.
+This report studies the reproducibility and performance of Express, a system for metadata-hiding communication. Using two servers, express ensures cryptographic security against at most one malicious server and an arbitrary number of malicious clients. The paper presents new protocols that offer low communication overhead, regardless of the number of users, and improved computation costs using symmetric key cryptography. Compared to Pung and Riposte, two previous cryptographically secure systems, Express achieves increased message throughput, while maintaining strong privacy guarantees. This makes Express an ideal applications for communication with whisteblowers.
 \end{abstract}
 
 \section{Introduction}
 \label{sec:intro}
 In todays digital landscape, secure communication has become increasingly crucial, with growing capabilites of surveillance and metadata analysis. Secure messaging apps like Signal and Transport Layer Security (TLS) encrypt the content of sent messages, but they do not protect metadata. It is possible to observe who sent and received messages, when and how often they communicated and how much data they exchanged. These information are as sensitive as the message itself and should therefore not be leaked. It is challenging to keep all metadata hidden, as most services for communication over the internet rely on some of them. An option for metadata hiding would be using a TOR browser or SecureDrop, but they are vulnerable to attacks by adversaries that control many network points. Other existing systems to hide metadata either have to high communication cost to be used in reality, or they are have low computation cost but their security gets worse with every round of communication, also making them impractical. \\
 While two servers are required, express still runs with one malicious server \citep{Eskandarian2021}. 
-Express' target audience are journalists and whistleblowers. To receive messages, a journalist, also called client in the client-server architecture, registers a mailbox with the two servers. The server assigns a 128-bit virtual address to each mailbox and maintains a page table in which it stores the corresponding physical address. The journalist can transmit this address to the whistleblower. Now the client can upload a message into the mailbox. No one execept the mailbox owner will know that a message has been sent into this mailbox. Mailbox owners have to check their mailboxes regularly. Express does not hide when a client read from a mailbox, therefore a pattern in the interval of checking could reveal something about acitvity of this mailbox. Additionally, Express must implement a possibility for cover traffic. This provides whistleblowers with plausible deniability and ensures that they cannot be accused of giving information simply for contacting an Express Server. \\
+Express' target audience are whistleblowers. To receive messages, a journalist or any other person that should receive information registers a mailbox with the two servers. The server assigns a 128-bit virtual address to each mailbox and maintains a page table in which it stores the corresponding physical address. The client can transmit this address to the whistleblower. Now the client can upload a message into the mailbox. No one execept the mailbox owner will know that a message has been sent into this mailbox. Mailbox owners have to check their mailboxes regularly. Express does not hide when a client read from a mailbox, therefore a pattern in the interval of checking could reveal something about acitvity of this mailbox. Additionally, Express must implement a possibility for cover traffic. This provides whistleblowers with plausible deniability and ensures that they cannot be accused of giving information simply for contacting an Express Server. \\
 There are different types of attacks that Express must be resilient against.
 All clients can read from all mailboxes, so Express must re-encrypt the  mailboxes differently each time a read happens, providing a encryption only the owner can decrypt. All others can neither read the content nor learn anything about which client is writing, even when reading the content of all mailboxes between every pair of writes. An other possible threat would be a malicious client targeting all mailboxes. It could overwrite all mailboxes with one message. Because the mailboxes can only hold a maximum of one message, all messages sent before this will be lost due to this denial-of-server attack. The complete overview is divided between the two servers, which means that the servers alone cannot recognise that this is not a valid message. A new auditing protocol presented in the paper is used to prevent such attacks. However, a malicious client could also attack just one mailbox, in which case the message would be completely correct and the server would have no way of detecting and preventing the attack. Virtual addresses are used to prevent the original messages in the mailbox from being overwritten. The address range is so large that the probability of hitting a specific mailbox is negligible.
 
@@ -121,27 +122,43 @@ To select the mailbox address, the journalist and the whistleblower can meet in 
 % Here, you include short descriptions of similar work and explain \textit{how} they are different from the main content you have presented. Level of detail similar to an abstract. 
 
 \label{sec:relwork}
-In this section we will present Pung and Riposte, two previous metadata-hiding communication systems working with the concept of mailboxes. Then we will compare their security and performance to Express. 
+In this section we will present Pung, Riposte and Addra, three  cryptographic metadata-hiding communication systems working with the concept of mailboxes. Pung and Riposte were developed before Express and were used as sources in the paper on Express. Addra, on the other hand, was developed later and uses Express as a source.\\ Pung addresses the same problem as Express, focusing on a solution for whistleblowers, but uses more computationally intensive public key cryptography. Riposte uses similar methods to Express, but does not provide for secret messages. Addra's goal is also to hide metadata\citep{Ahmad2021}. However, this does not concern written messages, but voice calls. 
+Then we will compare their security and performance to Express. 
 
 \subsection{Pung} 
-Pung \citep{Angel2016} is designed to provide privacy guarantees of both message content and and metadata. Its focus lies on protection against powerful gloabal adversaries who may control the entire network infrastructure. This could be mass surveillance or state- sponsored attacks. In Pung, clients deposit and retrieve messages through an untrusted key-value stores. Only one untrusted server is required.
-Pung's main goal is to hide the communication patterns of clients who already know each other's identities.
-It allows two or more users to exchange messages over a public network without anyone else learning that they communicated. While reducing the costs compared to prior approaches, Pung's network costs still remain high. Pung provides privacy even when the server is malicious. \\
-Pung was able to significantly reduce the calculation costs compared to previous work, but the network costs are high. It is particularly suitable when a client reads several messages at once.
+Pung \citep{Angel2016} is designed to provide privacy guarantees of both message content and metadata. Its focus lies on protection against powerful gloabal adversaries who may control the entire network infrastructure. This could be mass surveillance or state-sponsored attacks. In Pung, clients deposit and retrieve messages through an untrusted key-value stores. Only one server is required. Pung provides privacy even when the server is malicious.  \\
+Pung's main goal is to hide the communication patterns of clients who already know each other's identities. It allows two or more users to exchange messages over a public network without anyone else learning that they communicated. To prevent network surveillance, Pung operates in rounds. In each round, a client can only send and receive a limited number of messages. If this limit is exceeded, users must wait for the next round. Message retrieval is based on private information retrieval (PIR). As a result, clients have to download large amounts of data simultaneously to ensure anonymity. Pung is therefore particularly suitable for applications where this is the case, such as emails or group chats. Otherwise, the cost of network traffic is relatively high.\\
+While significantly reducing the costs compared to prior approaches, Pung's network costs still remain high. However, newly introduced techniques have significantly reduced the cost of cryptographic calculations.
 
 
 \subsection{Riposte}
-Riposte protects against network surveillance and malicious clients \citep{Corrigan_Gibbs_2015}. Like Express, the main target group is whistleblowers who want to leak information anonymously. Riposte users can post messages anonymously on a bulletin board, it therefore functions as a broadcast service. Using DPFs and a private information retrieval (PIR), Riposte minimizes the number of bits each client must upload to each server.  
+Riposte protects against network surveillance and malicious clients \citep{Corrigan_Gibbs_2015}. Like Express, the main target group is whistleblowers who want to leak information anonymously. Riposte users can post messages anonymously on a bulletin board, which acts as a public broadcast channel. Clients have a fixed time window in which they can write their messages. These are collected on the server and published when the time window has expired. Now everyone can read all the messages written previously. The content is therefore not secret, but the author remains anonymous.\\
+Riposte can be used in two ways. Either with three servers, only one of which may be malicious, or with a variable number, at least one of which must be honest. The variant with three servers, at least two of which are honest, uses a less expensive protocol. It is therefore preferable when millions of clients use Riposte, and it is also the one compared with Express in the paper. \\
+Using DPFs and a private information retrieval (PIR), Riposte minimizes the number of bits each client must upload to each server.  \\
+Riposte’s key innovation was minimizing the amount of data each client uploads to the servers, making large-scale anonymous writing more practical than earlier systems. However, it relies on public-key cryptography and synchronized communication rounds, which still lead to computational and communication overhead.
+
+\subsection{Addra}
+Addra is dedicated to hiding metadata during voice calls \citep{Ahmad2021}. This data, such as call duration, time, parties involved, can be very interesting for government surveillance programmes and is therefore highly sensitive. Andra is the first system to hide metadata from voice communications over a completely untrusted infrastructure. Previous systems with the same goal were not enough scalable, with a maximum of a few dozen users, or they required trusted partners, which posed a security risk. \\
+Callers receive a mailbox when they initiate a call, regardless of who it is going to. They place their message in it, preventing an enemy from finding out who the call is going to. Using the PIR protocol, the callee can retrieve this message from the mailbox. 
+Addra extends Pung's protocol using public and private keys to establish secure communication channels. Addra uses Pung's PIR protocol with private and public key encryption. However, Addra has expanded it to FastPIR. This reduces calculation times on the server side. In addition, PIR calculations are parallelised, as low latency is essential for calls. \\
+Addra has demonstrated that metadata privacy is also important for more demanding areas than sending messages and can be implemented using similar methods. 
+
 
 \subsection{Comparison}
-All three application focus on combining scalability with a guarantee of high privacy. 
-A significant disadvantage of Pung and Riposte compared to Express is that with both, each client must have written their message before anyone can read it. 
+All four application focus on combining scalability with strong privacy guarantees against network surveillance and malicious servers. A significant limitation of Pung and Riposte compared to Express is that both work with batched rounds, meaning each client must have written their message before anyone can read it. This simplifies anonymity guarantees, but restricts usability, since communication can only proceed once all clients in a round have acted. Batch processing introduces high latency and makes real-time interaction impractical. \\
+Express eliminates this limitation through an asynchronous architecture that allows clients to write and read messages independently. This not only improves responsiveness but also reduces the coordination overhead that previously limited scalability. Express therefore offers comparable cryptographic privacy with a better user experience.
+Riposte focuses on anonymous public posting, functioning as a broadcast channel rather than private messaging. Pung and Addra on the other hand enable private message exchange between known parties over an untrusted infrastructure. However, both systems achieve this by accepting higher computational and network costs, which limits their scalability to smaller user groups.
 
+\subsubsection{Security}
+In times when technical possibilities are constantly expanding and nation-states have a high interest in metadata, relying on trusted servers is risky. 
+States can use their enormous political and financial resources to attack these servers. That is why Pung and Addra, which continue to operate even without a trusted infrastructure, offer the strongest security. Riposte and Express take a different approach by distributing trust accross two or more servers. Compared to Riposte, Express strengthens its security guarantees through an auditing mechanism that detects malformed client requests and prevents data corruption without revealing metadata.
+This protection against malicious clients makes Express more robust in practical deployments while still maintaining a realistic trust model. Therefore, Express provides a balanced compromise between strong cryptographic privacy and operational practicality, making it more suitable for large-scale or real-world use.
 
+\subsubsection{Performance}
 For a fixed security parameter $\lambda$, Express' auditing protocol requires $O(\lambda)$ communication between parties and $O(1)$ client side communication. Riposte on the other hand required $\Omega (\lambda \sqrt{n})$ communication and $\Omega (\sqrt{n})$ client computation. In addition, Riposte requires three servers instead of two like Express. This results in the new auditing scheme reducing the costs for the client by 8$\times$ for an installation with one million registered mailboxes. 
 
 
-Significant events prior to the research of Express have led to Express testing significantly larger messages than previous systems. In 2019, a whistleblower submitted a report about President Trump and his interactions with the leader of Ukraine \citep{WhistleblowerComplaint}. The file had a size of 25.3 KB and showed how important it is to offer whistleblowers the option of sending long messages.
+Significant events prior to the research of Express have led to Express testing larger messages than previous systems. In 2019, a whistleblower submitted a report about President Trump and his interactions with the leader of Ukraine \citep{WhistleblowerComplaint}. The file had a size of 25.3 KB and showed how important it is to offer whistleblowers the option of sending long messages.
 
 
 Overall Express reduces the costs of maintaining a service for whistleblowers by 6$\times$ compared to previous work with the same objective.
@@ -149,7 +166,7 @@ Overall Express reduces the costs of maintaining a service for whistleblowers by
 
 \section{Conclusion}
 \label{sec:conclusion}
-
+We have shown that Express made progress in performance and reproducibility of privacy enhancing technologies. Its auditing and virtual addressing achieve efficient, scalable metadata privacy suitable for whistleblowing, journalism, or any communication system where metadata leakage is a risk. We also compared Express with three other systems that protect metadata from attackers. By comparing the calculation costs and computation times of the different applications, we found that Express became more cost-effective and time-efficient without sacrificing privacy guarantees.
 
 \section{Use of generative digital tools}
 
@@ -206,3 +223,8 @@ Tabelle einfügen: (See Table~\ref{tab:example}.)
 
 
 Ref zu einer Section: Note that you may include the related work as a subsection in the Background Section~\ref{sec:background}. 
+
+
+
+The former General Counsel of NSA, Stewart Baker, has said, “metadata absolutely tells you everything about somebody’s life. If you have enough metadata, you don’t really need content”  D. Cole. We kill people based on metadata. The New
+York Review, May 2014.
