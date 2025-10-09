@@ -24,6 +24,10 @@
 \newtheorem{definition}{Definition}
 \newtheorem{theorem}{Theorem}
 
+% FRAGEN
+% zitat jedes einzelne mal angeben, zb bei Pung?
+% was gehört alles zu seiten 10-12, auch references? 
+
 % TODO
 \author{Carina Fehr (\textit{remember to remove ID for the first draft and peer review!})}
 \title{Seminar Report on Express: Lowering the Cost of Metadata-hiding Communication with Cryptographic Privacy}
@@ -34,35 +38,36 @@
 \maketitle
 
 \begin{abstract}
-This report studies the reproducibility and performance of Express, a system for metadata-hiding communication. Using two servers, express provides cryptographic security against at most one malicious server and an arbitrary number of malicious clients. The paper presents new protocols that offer low communication overhead, regardless of the number of users, and improved computation costs using symmetric key cryptography. Compared to Pung and Riposte, two previous cryptographically secure systems, express lowers cost and increases message throughput. This makes Express an ideal applications for communication between whisteblowers and journalists.
+This report studies the reproducibility and performance of Express, a system for metadata-hiding communication. Using two servers, express ensures cryptographic security against at most one malicious server and an arbitrary number of malicious clients. The paper presents new protocols that offer low communication overhead, regardless of the number of users, and improved computation costs using symmetric key cryptography. Compared to Pung and Riposte, two previous cryptographically secure systems, Express achieves increased message throughput, while maintaining strong privacy guarantees. This makes Express an ideal applications for communication between whisteblowers and journalists.
 \end{abstract}
 
 \section{Introduction}
 \label{sec:intro}
-In todays digital landscape, secure communication has become increasingly crucial, with growing capabilites of surveillance and metadata analysis. Secure messaging apps like Signal and Transport Layer Security (TLS) encrypt the content of sent messages, but they do not protect metadata. It is possible to observe who sent and received messages, when and how often they communicated and how much data they exchanged. These information are as sensitive as the message itself and should therefore not be leaked. An option for metadata hiding would be using a TOR browser or SecureDrop, but they are vulnerable to attacks by adversaries that control many network points. Other existing systems to hide metadata either have to high communication cost to be used in reality, or they are have low computation cost but their security gets worse with every round of communication, also making them impractical. \\
-While two servers are required, express still runs with one malicious server. 
+In todays digital landscape, secure communication has become increasingly crucial, with growing capabilites of surveillance and metadata analysis. Secure messaging apps like Signal and Transport Layer Security (TLS) encrypt the content of sent messages, but they do not protect metadata. It is possible to observe who sent and received messages, when and how often they communicated and how much data they exchanged. These information are as sensitive as the message itself and should therefore not be leaked. It is challenging to keep all metadata hidden, as most services for communication over the internet rely on some of them. An option for metadata hiding would be using a TOR browser or SecureDrop, but they are vulnerable to attacks by adversaries that control many network points. Other existing systems to hide metadata either have to high communication cost to be used in reality, or they are have low computation cost but their security gets worse with every round of communication, also making them impractical. \\
+While two servers are required, express still runs with one malicious server \citep{Eskandarian2021}. 
 Express' target audience are journalists and whistleblowers. To receive messages, a journalist, also called client in the client-server architecture, registers a mailbox with the two servers. The server assigns a 128-bit virtual address to each mailbox and maintains a page table in which it stores the corresponding physical address. The journalist can transmit this address to the whistleblower. Now the client can upload a message into the mailbox. No one execept the mailbox owner will know that a message has been sent into this mailbox. Mailbox owners have to check their mailboxes regularly. Express does not hide when a client read from a mailbox, therefore a pattern in the interval of checking could reveal something about acitvity of this mailbox. Additionally, Express must implement a possibility for cover traffic. This provides whistleblowers with plausible deniability and ensures that they cannot be accused of giving information simply for contacting an Express Server. \\
 There are different types of attacks that Express must be resilient against.
 All clients can read from all mailboxes, so Express must re-encrypt the  mailboxes differently each time a read happens, providing a encryption only the owner can decrypt. All others can neither read the content nor learn anything about which client is writing, even when reading the content of all mailboxes between every pair of writes. An other possible threat would be a malicious client targeting all mailboxes. It could overwrite all mailboxes with one message. Because the mailboxes can only hold a maximum of one message, all messages sent before this will be lost due to this denial-of-server attack. The complete overview is divided between the two servers, which means that the servers alone cannot recognise that this is not a valid message. A new auditing protocol presented in the paper is used to prevent such attacks. However, a malicious client could also attack just one mailbox, in which case the message would be completely correct and the server would have no way of detecting and preventing the attack. Virtual addresses are used to prevent the original messages in the mailbox from being overwritten. The address range is so large that the probability of hitting a specific mailbox is negligible.
 
 \section{Background}
 \label{sec:background}
-This section explain the concepts of cryptographic privacy and distrubuted point functions, also called DPFS. In the following section, we present how they can be used for Express.
+This section explain two key concepts that form the foundation of Express: cryptographic privacy and distrubuted point functions, also called DPFS. In the following section, we will show how they can be used to achieve efficient metadata-hiding communiction.
 
 \subsection{Cryptographic privacy}
 \label{subsec:first-background}
-Cryptographic privacy is a mechanism that guarantees no information leaks. Even after observing many rounds of communication, the adversary knows nothing about whick clients are communicating with each other. A different mechanism is differential privacy. After several rounds of communication, they are not able to keep all metadata secret. Therefore, altough cryptographic privacy is slower, it is more suitable for a frequently used applications.  
-
+Cryptographic privacy is a mechanism that guarantees no information about communication metadata leaks to an adversary. Even after observing many rounds of communication, the adversary cannot determine which clients are communicating with each otheror which mailbox a message was written to. \\
+An alternative mechanism is differential privacy. After several rounds of communication, systems based on differential privacy such as Vuvuzela or Stadium, will loose security. Consistent observation will lead to some leaked information. Therefore, although cryptographic privacy is slower, it is the prefered approach for a frequently used applications.  
 
 
 \subsection{Distributed point function}
 \label{subsec:second-background}
-A DPF (https://eprint.iacr.org/2023/028.pdf) is a cryptographic algorithm. It splits a function $f$ into function shares that individually hide $f$. The point function $f_{a,b}(x)$ outputs $b$ at at the point $x = a$ and 0 everywhere else. The two or more parts of the function individually reveal nothing about the function. Express splits the function into two parts, one for each of the servers. Therefore even a malicious server can not tell anything about the function. 
+A DPF (https://eprint.iacr.org/2023/028.pdf) is a cryptographic algorithm. It splits a function $f$ into function shares that individually hide $f$. The point function $f_{a,b}(x)$ outputs $b$ at at the point $x = a$ and 0 everywhere else. The two or more parts of the function individually reveal nothing about the function.\\
+ Express splits the function into two parts, one for each of the servers. Because no server alone can reconstruct the full function, even a malicious or compromised server cannot tell anything about the function and learns nothing about which mailbox a client wrote into. 
 
 
 \section{Private Communication in Express} % Explain how clients send and read messages. Describe mailbox registration, writing, and reading steps.Emphasize asynchronous operation and lack of global rounds.
 \label{sec:main}
-In this section, we will explain how an Express client writes messages and how the servers store them.  
+In this section, we will explain how an Express client writes messages into mailboxes and how the servers store them.  
 
 \subsection{Express Servers}
 \textbf{Secret sharing with DPFs}.
@@ -86,7 +91,7 @@ The messages sent by clients should either all be the same size or consist of a 
 
 
 \section{Protecting Privacy and Integrity} %auditing, malicious client protection, virtual addressing.
-Explain how these mechanisms maintain security with minimal overhead.
+%Explain how these mechanisms maintain security with minimal overhead.
 \label{sec:anohter-topic}
 In this section we first show how Express ensures privacy when all clients behave legitimately, and then when at least one is malicious. At the end, we will show how Express can be used as a tool for communication between whistleblowers and journalists.  
 
@@ -111,17 +116,35 @@ News websites like New York Times benefit from high cover traffic because whistl
 \subsubsection{Dialing}
 To select the mailbox address, the journalist and the whistleblower can meet in person. However, this is often not possible. In this case, a dialling protocol can be used. For example, the Riposte system could be used a basis and made faster and cheaper with the improvements identified in Express. Journalists post their public keys for Riposte online, then whisteblowers can send them a mailbox address. The Journlist can download their messages and register the mailboxes. 
 
-\section{Related work}
+\section{Related work} %Hier vlt Tabelle mit O notation nehmen und zusätzlich die von Pung und Riposte und vergleichen
+
+% Here, you include short descriptions of similar work and explain \textit{how} they are different from the main content you have presented. Level of detail similar to an abstract. 
+
 \label{sec:relwork}
-Pung: Pung also focuses on metadata hiding in communication systems. 
+In this section we will present Pung and Riposte, two previous metadata-hiding communication systems working with the concept of mailboxes. Then we will compare their security and performance to Express. 
 
-Hier vlt Tabelle mit O notation nehmen und zusätzlich die von Pung und Riposte und vergleichen
+\subsection{Pung} 
+Pung \citep{Angel2016} is designed to provide privacy guarantees of both message content and and metadata. Its focus lies on protection against powerful gloabal adversaries who may control the entire network infrastructure. This could be mass surveillance or state- sponsored attacks. In Pung, clients deposit and retrieve messages through an untrusted key-value stores. Only one untrusted server is required.
+Pung's main goal is to hide the communication patterns of clients who already know each other's identities.
+It allows two or more users to exchange messages over a public network without anyone else learning that they communicated. While reducing the costs compared to prior approaches, Pung's network costs still remain high. Pung provides privacy even when the server is malicious. \\
+Pung was able to significantly reduce the calculation costs compared to previous work, but the network costs are high. It is particularly suitable when a client reads several messages at once.
 
-Here, you include short descriptions of similar work and explain \textit{how} they are different from the main content you have presented.
 
-Level of detail similar to an abstract. 
+\subsection{Riposte}
+Riposte protects against network surveillance and malicious clients \citep{Corrigan_Gibbs_2015}. Like Express, the main target group is whistleblowers who want to leak information anonymously. Riposte users can post messages anonymously on a bulletin board, it therefore functions as a broadcast service. Using DPFs and a private information retrieval (PIR), Riposte minimizes the number of bits each client must upload to each server.  
 
-Note that you may include the related work as a subsection in the Background Section~\ref{sec:background}. 
+\subsection{Comparison}
+All three application focus on combining scalability with a guarantee of high privacy. 
+A significant disadvantage of Pung and Riposte compared to Express is that with both, each client must have written their message before anyone can read it. 
+
+
+For a fixed security parameter $\lambda$, Express' auditing protocol requires $O(\lambda)$ communication between parties and $O(1)$ client side communication. Riposte on the other hand required $\Omega (\lambda \sqrt{n})$ communication and $\Omega (\sqrt{n})$ client computation. In addition, Riposte requires three servers instead of two like Express. This results in the new auditing scheme reducing the costs for the client by 8$\times$ for an installation with one million registered mailboxes. 
+
+
+Significant events prior to the research of Express have led to Express testing significantly larger messages than previous systems. In 2019, a whistleblower submitted a report about President Trump and his interactions with the leader of Ukraine \citep{WhistleblowerComplaint}. The file had a size of 25.3 KB and showed how important it is to offer whistleblowers the option of sending long messages.
+
+
+Overall Express reduces the costs of maintaining a service for whistleblowers by 6$\times$ compared to previous work with the same objective.
 
 
 \section{Conclusion}
@@ -180,3 +203,6 @@ Tabelle einfügen: (See Table~\ref{tab:example}.)
 \caption{An example table}
 \label{tab:example}
 \end{table}
+
+
+Ref zu einer Section: Note that you may include the related work as a subsection in the Background Section~\ref{sec:background}. 
