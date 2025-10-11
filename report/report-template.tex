@@ -15,6 +15,9 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 
+\usepackage{tabularx} % ist das erlaubt?
+
+
 \usepackage{lipsum}
 
 % German
@@ -30,6 +33,8 @@
 % wie viele verwandte themen bei related work? dürfen es auch diese sein, die im paper schon diskutiert wurden? 
 
 % TODO
+% Addra zeiten in tabelle und generell vergleich 
+
 \author{Carina Fehr (\textit{remember to remove ID for the first draft and peer review!})}
 \title{Seminar Report on Express: Lowering the Cost of Metadata-hiding Communication with Cryptographic Privacy}
 \date{\today}
@@ -56,63 +61,76 @@ This section explain two key concepts that form the foundation of Express: crypt
 
 \subsection{Cryptographic privacy}
 \label{subsec:first-background}
-Cryptographic privacy is a mechanism that guarantees no information about communication metadata leaks to an adversary. Even after observing many rounds of communication, the adversary cannot determine which clients are communicating with each otheror which mailbox a message was written to. \\
-An alternative mechanism is differential privacy. After several rounds of communication, systems based on differential privacy such as Vuvuzela or Stadium, will loose security. Consistent observation will lead to some leaked information. Therefore, although cryptographic privacy is slower, it is the prefered approach for a frequently used applications.  
+Cryptographic privacy is a mechanism that guarantees no information about communication metadata leaks to an adversary. Even after observing many rounds of communication, a global adversary who can observe all network traffic cannot determine which clients are communicating with each other or which mailbox a message was written to. \\
+An alternative mechanism is differential privacy. After several rounds of communication, systems based on differential privacy such as Vuvuzela or Stadium, will loose security. Consistent observation will allow the adversary to learn something about communication patterns. Therefore, although cryptographic privacy is slower and involves higher computational cost, it is the prefered approach for frequently used applications where long-term security is essential.  
 
 
 \subsection{Distributed point function}
-\label{subsec:second-background}
-A DPF (https://eprint.iacr.org/2023/028.pdf) is a cryptographic algorithm. It splits a function $f$ into function shares that individually hide $f$. The point function $f_{a,b}(x)$ outputs $b$ at at the point $x = a$ and 0 everywhere else. The two or more parts of the function individually reveal nothing about the function.\\
+\label{subsec:DPF}
+A DPF \citep{DPF2023} is a cryptographic algorithm. It splits a function $f$ into function shares that individually hide $f$. The point function $f_{a,b}(x)$ outputs $b$ at at the point $x = a$ and $0$ everywhere else. The two or more parts of the function individually reveal nothing about the function.\\
  Express splits the function into two parts, one for each of the servers. Because no server alone can reconstruct the full function, even a malicious or compromised server cannot tell anything about the function and learns nothing about which mailbox a client wrote into. 
 
-
 \section{Private Communication in Express} % Explain how clients send and read messages. Describe mailbox registration, writing, and reading steps.Emphasize asynchronous operation and lack of global rounds.
-\label{sec:main}
-In this section, we will explain how an Express client writes messages into mailboxes and how the servers store them.  
+\label{sec:private}
+In this section, we will explain how an Express client writes messages into mailboxes and how the servers store them.
+To send a message, the client creates a zero vector with the length of all mailboxes. It inserts its message into this vector at the relevant position in its target mailbox and sends a portion of this vector to both servers. The servers add this vector to their current status. .   
 
 \subsection{Express Servers}
 \textbf{Secret sharing with DPFs}.
-If the express servers hold $n$ mailboxes together and each of them contains an element of the finite field $\mathbb{F}$, the totality of all mailboxes can be represented as a vector: $D \in \mathbb{F}^n$. 
-$D$ can therefore be represented as the sum of the two components $D_A+ D_B =D$, where the vector belonging to server A corresponds to $D_A \in \mathbb{F}^n$ and server B's vector corresponds to $D_B \in \mathbb{F}^n$. 
-When the servers receive a new message w, they can both add this vector to their current status: $D_A \leftarrow D_A + w_A \in \mathbb{F}^n$ and equally $D_B \leftarrow D_B + w_B \in \mathbb{F}^n$. \\
-By using DPFs, as explained in the following subchapter, the servers do not receive a complete vector, but only a function share. They can evaluate this at any point, i.e. for each mailbox. This gives them the vectors, which they can add to$ D_A$ and $D_B$ as before. 
+Servers A and B together store the entire contents of all mailboxes. Both hold a share of the secret messages, which is implemented using DPFs.
+If the express servers hold $n$ mailboxes  and each of them contains an element of the finite field $\mathbb{F}$, the totality of all mailboxes can be represented as a vector: $D \in \mathbb{F}^n$. 
+$D$ can therefore be represented as the sum of the two components $D_A+ D_B =D$, where the vector belonging to server A corresponds to $D_A \in \mathbb{F}^n$ and server B's vector corresponds to $D_B \in \mathbb{F}^n$. \\
+When a clients sends a new message, they send both servers one share of a vector $w$ containing this message (further details in "Express Clients"). 
+When the servers receive the message $w_a$ and $w_b$, they can both add this vector to their current status: $D_A \leftarrow D_A + w_A \in \mathbb{F}^n$ and equally $D_B \leftarrow D_B + w_B \in \mathbb{F}^n$. This ensures that the received message is placed in the correct mailbox and all other mailboxes remain unchanged. \\
+By using DPFs instead of sending such large vectors the servers receive only a function share. They can evaluate this at any point, i.e. for each mailbox. This allows them to recover the vectors $w_a$ and $w_b$, which they can add to $D_A$ and $D_B$ as before. Chapter xxx explains in more detail how the functions are created. 
 \\ \textbf{Distribution of trust}.
 To prevent one server from containing all the data, thus representing a single point of failure and not providing adequate security for metadata hiding, multiple servers must be used. One way to achieve this distribution of trust would be to use a large number of servers. This offers the advantage that even if more than one server is malicious, the system can still continue to run.\\
-Express uses only two servers, which in the paper are the Wall Street Journal and the Washington Post. These two must therefore meet stricter security requirements. One difficulty in implementing Express could be censorship. If access to one of the two servers is blocked, the entire application will no longer function. Express is less suitable for countries where news websites, i.e. servers on which Express runs, are often restricted. 
+Express uses only two servers, which in the paper are the ones from Wall Street Journal and the Washington Post. These two must therefore meet stricter security requirements. One difficulty in implementing Express could be censorship. If access to one of the two servers is blocked, the entire application will no longer function. Express is therefore less suitable for countries where news websites, i.e. servers on which Express runs, are often restricted. 
 \\ \textbf{Malicious server}
 Another danger is posed by a malicious server. A denial of service attack can originate not only from a client, but also from a server. The server can overwrite the contents of all mailboxes with meaningless content, causing the original content to be lost. However, since the client will realise that the contents of their mailbox are garbage, they can recognise that the system can no longer be trusted. 
 
 \subsection{Express Clients}
-If a client wants to write a message $m \in \mathbb{F}$ to a mailbox, it can insert it into a vector of the length of all mailboxes by multiplying it with the $i$-th standard-basis vector $\mathbf{e}_i$. This vector should be zero everywhere except at the location of the targeted mailbox. Mathematically, this can be formulated as follows: $m \cdot \mathbf{e}_i \in \mathbb{F}^n$. This vector must then be split so that one can be sent to each server; i.e. $w_A + w_B = m \cdot \mathbf{e}_i$. However, the costs of these calculations are high. For every message that the client sends, it must have an element in the vector for each mailbox in the system and send it to both servers. 
-A better alternative is to use DPFs, which allows clients to send less data. As explained in section 2.2, it is possible to split a function into two parts that, on their own, do not reveal anything about the function. We call the functions for the two Servers A and B $f_A$ and $f_b$. When added together, they give exactly the value of $f$ at each point. This point function can therefore also be written as follows: $f_{i^*,m}: [N] \rightarrow \mathbb{F}$. $i^*$ is the only point at which this function does not yield zero, but rather $m$. Clients can now generate the shares $f_A$ and $f_B$. Added at any point $i \in [N]$ they result in the DPF: $f_A(i) + f_B(i) = f_{i^*,m}$. Individually, these do not tell an attacker anything about $i^*$, i.e. the mailbox being written to, or about $m$, i.e. the message being transmitted. \\
-The use of DPFs has reduced the size of sent messages to such an extent that, with a security parameter $\lambda$, each part of the function now has a length of $O(\lambda log N + \mid m \mid)$ bits.
-
-The messages sent by clients should either all be the same size or consist of a predefined set of sizes. If an attacker can extract information from the message size, the system loses security and the cover traffic no longer provides sufficient plausible deniability.
+The messages sent by clients should either all be the same size or consist of a predefined set of sizes. If an attacker can extract information from the message size, the system loses security and cover traffic no longer provides sufficient plausible deniability.
+If a client wants to write a message $m \in \mathbb{F}$ to a mailbox, it can insert it into a vector of the length of all mailboxes by multiplying it with the $i$-th standard-basis vector $\mathbf{e}_i$. This vector's value should be one at the location of the targeted mailbox and zero everywhere else. Mathematically, this can be formulated as follows: $m \cdot \mathbf{e}_i \in \mathbb{F}^n$. This vector must then be split so that to each server one share can be sent. When added together, they form the vector with the message, i.e. $w_A + w_B = m \cdot \mathbf{e}_i$. No relevant information can be obtained from one vector share alone. \\
+However, the costs of these calculations are high. Each message sent by the client consists of a vector with a length equal to the number of mailboxes in the system. This vector therefore quickly becomes very large, and the fact that both servers receive a vector further increases communication costs.        
+A better alternative is to use DPFs, which allows clients to send less data by compressing the vectors  $w_a$ and $w_b$. As explained in \ref{subsec:DPF}, it is possible to split a function into two parts that, on their own, do not reveal anything about the function. We call the functions for the two Servers A and B $f_A$ and $f_b$. When the functions are added together, they result in the function $f$. $f$ maps indices to function values, i.e. mailboxes to the messages they contain. The function can therefore be evaluated at any point to determine the contents of the corresponding mailbox. This point function can also be written as follows: $f_{i^*,m}: [N] \rightarrow \mathbb{F}$. $i^*$ is the only point at which this function does not yield zero, but rather $m$. Clients are able to generate the shares $f_A$ and $f_B$. Added at any point $i \in [N]$, they result in the DPF: $f_A(i) + f_B(i) = f_{i^*,m}$. Individually, these do not tell an attacker anything about $i^*$, i.e. the mailbox being written to, or about $m$, i.e. the message being transmitted. \\
+The use of DPFs has reduced the size of sent messages to such an extent that, with a security parameter $\lambda$, each part of the function now has a length of $O(\lambda log N + \mid m \mid)$ bits. 
 
 
 
 \section{Protecting Privacy and Integrity} %auditing, malicious client protection, virtual addressing.
 %Explain how these mechanisms maintain security with minimal overhead.
-\label{sec:anohter-topic}
+\label{sec:protecting}
 In this section we first show how Express ensures privacy when all clients behave legitimately, and then when at least one is malicious. At the end, we will show how Express can be used as a tool for communication between whistleblowers and journalists.  
 
 \subsection{Privacy with honest clients}
-The previous chapter (3) explained how we can write something secretly to the server. However, an adversary could now check all network traffic. If they compare the contents of all mailboxes after each write, they will not be able to read the message because it is encrypted, but they can find out which client wrote to which mailbox.
-\\To ensure that the metadata is completely hidden, we also need to control who reads the mailboxes. This could be prevented by only allowing reading once all clients have written, i.e. by running the system in batches. Pung and Riposte are based on this concept. However, this severely limits actual usability. Express has therefore proposed a method that does not require synchronised rounds. To achieve this, we must ensure that an attacker cannot view the messages or identify which mailbox has been modified after a message has been sent. The only person entitled to this information is the owner of the mailbox. \\
-Express uses a lightweight cryptographic algorithm based on symmetric cryptography. Before changing the contents of a mailbox, the servers must decrypt it and then re-encrypt it. To do this, both servers receive their keys $k_A$ and $k_B$ from the client when creating a mailbox. After each change, all mailboxes are re-encrypted. This means that an attacker cannot find out which mailbox a message has been stored in unless they have both keys. \\
-A counter is used for encryption. So when re-encryption is required, the previous value is subtracted and the new value added, which is a commutative operation. It is not necessary to re-encrypt after every write, but only if a read has occurred between writes. Otherwise, no one, including an attacker, has obtained any information. This increases the efficiency of encryption. In addition, it is not absolutely necessary for both servers to perform the re-encryption.
-If one of the servers has been corrupted and no longer re-encrypts, the system remains secure.
+The previous chapter \ref{sec:private} explained how we can write a message secretly to the server. However, an adversary could now check all network traffic. If they compare the contents of all mailboxes after each write, they will not be able to read the message because it is encrypted, but they can find out which client wrote to which mailbox. \\
+To ensure that the metadata is completely hidden, we also need to control who reads the mailboxes. This could be prevented by only allowing reading once all clients have written, i.e. by running the system in batched rounds. Pung and Riposte are based on this concept. However, this severely limits actual usability. Express has therefore proposed a method that does not require synchronised rounds. To achieve this, we must ensure that an attacker cannot view the messages or identify which mailbox has been modified after a message has been sent. The only person entitled to this information is the owner of the mailbox. If a mechanism is found that meets these two requirements, a network adversary can still determine when something was written, but will not learn anything about the modified mailbox.\\
+For this, Express uses a lightweight cryptographic algorithm based on symmetric cryptography. The servers do not need to authenticate the clients when they submit a read request. Before changing the contents of a mailbox, the servers must decrypt it and re-encrypt after the modifications. Both servers have their keys $k_A$ and $k_B$, which a client uploads when creating a mailbox. The re-encryptions after the write are randomized. This means that an attacker reading the encrypted contents cannot find out which mailbox a new message has been stored in unless they have both keys. \\
+A counter is used for encryption. So when re-encryption is required, the previous value is subtracted and the new value added, which is a commutative operation. It is not necessary to re-encrypt after every write, only if a read has occurred between writes. Otherwise, no one, including an attacker, has obtained any information. This increases the efficiency of encryption. Additionally, it is not absolutely necessary for both servers to perform the re-encryption. If one of the servers has been corrupted and no longer re-encrypts, the system remains secure. \\
+In section \ref{subsubsec:targeted} we will explain that auditing does not protect against attacks on a single mailbox and how we prevent these attacks instead.
 
 \subsection{Privacy with malicious clients}
-The techniques presented in the previous chapter only provide security as long as all clients behave honestly. Even a single malicious client can attack and damage both servers. 
-Nothing prevents a client from creating a vector that writes to multiple mailboxes simultaneously. To do this, it creates a DPF whose added vectors $w_A$ and $w_B$, calculated from the functions $f_A$ and $f_B$, are not zero everywhere or in multiple indices. Thus, one message from a malicious client is sufficient to overwrite all mailboxes and thereby delete the original content. Express has introduced an auditing protocol to prevent this. This ensures that each write only updated only one mailbox. Each vector to be inserted must therefore have a zero as an element at every position except one. If the vector does not meet this requirement, it can be discarded, meaning that the write request is rejected by the server and nothing is written to any mailbox.
+The techniques presented in the previous chapter only provide security as long as all clients behave honestly. Even a single malicious client can attack and damage both servers. Nothing prevents a client from creating a vector that writes to multiple mailboxes simultaneously. To do this, it creates a DPF whose added vectors $w_A$ and $w_B$, calculated from the functions $f_A$ and $f_B$, are not equal to zero on multiple inidices. The mailboxes at Express can only hold one message at a time. If a new one is written, the old one can no longer be read. Thus, one message from a malicious client is sufficient to overwrite multiple or even all mailboxes and thereby delete the original content. Express has introduced an auditing protocol to prevent this scenario. This protocol ensures that each write updates only one mailbox. Each vector $(w_a + w_b) \in \mathbb{F}^n$ to be inserted must therefore have zero as an element at every position except one. If the vector does not meet this requirement, it can be discarded, meaning that the write request is rejected by the server and nothing is written to any mailbox. 
+
+\subsubsection{Auditing Protocol}
+Express has developed a new auditing protocol that differs from Riposte's previous one in terms of the number of servers required, as well as the computation times and costs. Riposte requires three servers, only one of which may be malicious. The time required for a write in Riposte is linear, which leads to high costs for clients. The auditing protocol developed in Express has a constant runtime, making it much more suitable for real-world applications. In section 5, we will compare the performance of these two systems in more detail.  \\
+As the performance bottleneck on the server is the evaluation of DPFs, improvements in auditing would not result in significant progress of the overall performance.
+
+\subsubsection{Targeted attacks}
+\label{subsubsec:targeted}
+Another danger posed by a malicious client is a targeted attack on a specific mailbox. The client, which can no longer write to multiple mailboxes due to the auditing protocol, still has the ability to write a message to a specific mailbox. The recipient can easily determine that the contents of their mailbox contain random data and that the original contents must have been deleted. However, since these messages are sent in a formally correct vector, it is not possible to intercept them with a protocol. \\
+Express uses virtual addresses for its mailboxes to solve this problem. Each mailbox is assigned a 128-bit virtual address. Clients that want to write to a mailbox must know this address. With those 128-bit addresses, the address space has a size of $2^{128}$. This corresponds to $3.4 * 10^{38}$, meaning there is such an enormous amount of addresses that an attacker is never able to guess a victim's mailbox.     
+
+Express maintains an internal array of $2^\lambda$ virtual addresses and an array of $n$ physical addresses, where $\lambda$ is a safety parameter.   
 
 \subsection{Express for Whistleblowing}
 As explained in the previous chapters, Express offers a secure communication option. Outside of the data transfer itself, there are two more safety issues that should be considered. First, we need plausible deniability, second, we need a way to agree on a Mailbox address. 
 
-\subsubsection{plausible deniability / cover traffic}
+\subsubsection{Cover traffic}
 If whistleblowers were the only users of Express, it would be obvious that anyone who sent a message over Express had passed on information. This means that many users that are not involved in whistleblowing must also send messages, creating cover traffic. To achieve this, a JavaScript programm can be integrated into a website with high traffic, such as a news site. Every time a user visits this website, a dummy request is sent to the Express servers. The servers generate a key that is not known to any client. This means that these messages cannot be read, but they also cannot be distinguished from those of the whistleblowers. \\
-News websites like New York Times benefit from high cover traffic because whistleblowers feel safer and are more likely to pass on information. This makes such sites particularly suitable for integrating JavaScript. The paper(ref!) does not specify how cover traffic is required exactly, but it should be enough to ensure that real messages remain indistinguishable from the generated ones. The cost and computation times are very low, which can further encourage the use of Express. 
+The cost and computation times are very low, so that these do not pose an issue for integrating Express scripts on the website. The loading times of the New York Times, Washington Post and Wall Street Journal were analysed. They take between 2 and 5.5 seconds to load completely. The Express Client needs 51 ms in JavaScript to send 1 KB of data. This means that the calculation times of the Express Client in the browser amount to less than 3\% of the current loading time. Even the JavaScript code would only increase these pages by less than 1.5\%. The JavaScript can therefore be executed in the background without affecting the user. \\
+News websites like New York Times benefit from high cover traffic because whistleblowers feel safer and are more likely to pass on information. This makes such sites particularly suitable for integrating the Express code. Express does not specify how much cover traffic is required exactly, but it should be enough to ensure that real messages remain indistinguishable from the generated ones. 
 
 \subsubsection{Dialing}
 To select the mailbox address, the journalist and the whistleblower can meet in person. However, this is often not possible. In this case, a dialling protocol can be used. For example, the Riposte system could be used a basis and made faster and cheaper with the improvements identified in Express. Journalists post their public keys for Riposte online, then whisteblowers can send them a mailbox address. The Journlist can download their messages and register the mailboxes. 
@@ -122,8 +140,13 @@ To select the mailbox address, the journalist and the whistleblower can meet in 
 % Here, you include short descriptions of similar work and explain \textit{how} they are different from the main content you have presented. Level of detail similar to an abstract. 
 
 \label{sec:relwork}
-In this section we will present Pung, Riposte and Addra, three  cryptographic metadata-hiding communication systems working with the concept of mailboxes. Pung and Riposte were developed before Express and were used as sources in the paper on Express. Addra, on the other hand, was developed later and uses Express as a source.\\ Pung addresses the same problem as Express, focusing on a solution for whistleblowers, but uses more computationally intensive public key cryptography. Riposte uses similar methods to Express, but does not provide for secret messages. Addra's goal is also to hide metadata\citep{Ahmad2021}. However, this does not concern written messages, but voice calls. 
+In this section we will present Pung, Riposte and Addra, three  cryptographic metadata-hiding communication systems working with the concept of mailboxes. Additionally we present Securedrop, a system developed for whistleblowing that has been in use since 2013. SecureDrop, Pung and Riposte were developed before Express and were used as sources in the paper on Express. Addra, on the other hand, was developed later and uses Express as a source.\\ 
+SecureDrop handles the same problem as Express, but takes a different approach to privacy and does not offer cryptographic security. Pung addresses the same problem as Express, focusing on a solution for whistleblowers, but uses more computationally intensive public key cryptography. Riposte uses similar methods to Express, but is not suitable for whistleblowers because messages are not secret.  Addra extends the goal of metadata-hiding even further, presenting a solution for making secure and private voice calls \citep{Ahmad2021}.
 Then we will compare their security and performance to Express. 
+
+\subsection{SecureDrop}
+SecureDrop \citep{securedrop} is an open-source whistleblowing platform \citep{berret2016guide}. It is used by news organizations to enable anonymous, secure exchange of documents and messages between sources and journalists. Maintained by the Freedom of the Press Foundation, it is deployed by numerous media organizations worldwide, including The New York Times and The Guardian. SecureDrop was originally developed by Aaron Swartz, an activist against internet censorship, and Kevin Poulsen, who was earlier pursued by the FBI and spent five years in prison for computer fraud. SecureDrop aims at protecting the identity of whistleblowers and the confidentiality of leaked information. Sources submit documents and messages through the Tor network, which hides both the network location and identity of sources from the news organization and potential adversaries. The system stores encrypted submissions on physically secured, disconnected from the wider organization network's disconnected servers. Journalists access these servers through separate, hardened machines that are kept offline to prevent data leaks.
+While SecureDrop provides strong content confidentiality and reasonable anonymity at the network level, it does not achieve cryptographic metadata privacy. 
 
 \subsection{Pung} 
 Pung \citep{Angel2016} is designed to provide privacy guarantees of both message content and metadata. Its focus lies on protection against powerful gloabal adversaries who may control the entire network infrastructure. This could be mass surveillance or state-sponsored attacks. In Pung, clients deposit and retrieve messages through an untrusted key-value stores. Only one server is required. Pung provides privacy even when the server is malicious.  \\
@@ -132,7 +155,7 @@ While significantly reducing the costs compared to prior approaches, Pung's netw
 
 
 \subsection{Riposte}
-Riposte protects against network surveillance and malicious clients \citep{Corrigan_Gibbs_2015}. Like Express, the main target group is whistleblowers who want to leak information anonymously. Riposte users can post messages anonymously on a bulletin board, which acts as a public broadcast channel. Clients have a fixed time window in which they can write their messages. These are collected on the server and published when the time window has expired. Now everyone can read all the messages written previously. The content is therefore not secret, but the author remains anonymous.\\
+Riposte protects against network surveillance and malicious clients \citep{Corrigan_Gibbs_2015}. Like Express, the main target group is whistleblowers who want to leak information anonymously. Riposte users can post messages anonymously on a bulletin board, which acts as a public broadcast channel. Clients have a fixed time window in which they can write their messages. These are collected on the server and published when the time window has expired. Now everyone can read all the messages written previously. The content is therefore not secret, but the author remains anonymous. If the messages were published after each write, everyone could see that the person who was last connected to the server created that message.\\
 Riposte can be used in two ways. Either with three servers, only one of which may be malicious, or with a variable number, at least one of which must be honest. The variant with three servers, at least two of which are honest, uses a less expensive protocol. It is therefore preferable when millions of clients use Riposte, and it is also the one compared with Express in the paper. \\
 Using DPFs and a private information retrieval (PIR), Riposte minimizes the number of bits each client must upload to each server.  \\
 Riposte’s key innovation was minimizing the amount of data each client uploads to the servers, making large-scale anonymous writing more practical than earlier systems. However, it relies on public-key cryptography and synchronized communication rounds, which still lead to computational and communication overhead.
@@ -145,31 +168,59 @@ Addra has demonstrated that metadata privacy is also important for more demandin
 
 
 \subsection{Comparison}
-All four application focus on combining scalability with strong privacy guarantees against network surveillance and malicious servers. A significant limitation of Pung and Riposte compared to Express is that both work with batched rounds, meaning each client must have written their message before anyone can read it. This simplifies anonymity guarantees, but restricts usability, since communication can only proceed once all clients in a round have acted. Batch processing introduces high latency and makes real-time interaction impractical. \\
+All five application focus on combining scalability with strong privacy guarantees against network surveillance and malicious servers. A significant limitation of Pung and Riposte compared to Express is that both work with batched rounds, meaning each client must have written their message before anyone can read it. This simplifies anonymity guarantees, but restricts usability, since communication can only proceed once all clients in a round have acted. Batch processing introduces high latency and makes real-time interaction impractical.\\
 Express eliminates this limitation through an asynchronous architecture that allows clients to write and read messages independently. This not only improves responsiveness but also reduces the coordination overhead that previously limited scalability. Express therefore offers comparable cryptographic privacy with a better user experience.
-Riposte focuses on anonymous public posting, functioning as a broadcast channel rather than private messaging. Pung and Addra on the other hand enable private message exchange between known parties over an untrusted infrastructure. However, both systems achieve this by accepting higher computational and network costs, which limits their scalability to smaller user groups.
+Riposte focuses on anonymous public posting, functioning as a broadcast channel rather than private messaging. Pung and Addra on the other hand enable private message exchange between known parties over an untrusted infrastructure. However, both systems achieve this by accepting higher computational and network costs, which limits their scalability to smaller user groups. \\
+SecureDrop wroks most differently compared to the other four applications. It is vulnerable to traffic analysis if a large amount of the network is observed. Because metadata is not cryptographically hidden, an adversary could still detect that communication occurred between a whistleblower and a journalist, even if they cannot read the message content. Furthermore, maintaining SecureDrop relies on a trusted infrastructure within the media organization, including physical security for the servers and trained operational staff.
 
-\subsubsection{Security}
 In times when technical possibilities are constantly expanding and nation-states have a high interest in metadata, relying on trusted servers is risky. 
 States can use their enormous political and financial resources to attack these servers. That is why Pung and Addra, which continue to operate even without a trusted infrastructure, offer the strongest security. Riposte and Express take a different approach by distributing trust accross two or more servers. Compared to Riposte, Express strengthens its security guarantees through an auditing mechanism that detects malformed client requests and prevents data corruption without revealing metadata.
 This protection against malicious clients makes Express more robust in practical deployments while still maintaining a realistic trust model. Therefore, Express provides a balanced compromise between strong cryptographic privacy and operational practicality, making it more suitable for large-scale or real-world use.
 
 \subsubsection{Performance}
-For a fixed security parameter $\lambda$, Express' auditing protocol requires $O(\lambda)$ communication between parties and $O(1)$ client side communication. Riposte on the other hand required $\Omega (\lambda \sqrt{n})$ communication and $\Omega (\sqrt{n})$ client computation. In addition, Riposte requires three servers instead of two like Express. This results in the new auditing scheme reducing the costs for the client by 8$\times$ for an installation with one million registered mailboxes. 
-
-
 Significant events prior to the research of Express have led to Express testing larger messages than previous systems. In 2019, a whistleblower submitted a report about President Trump and his interactions with the leader of Ukraine \citep{WhistleblowerComplaint}. The file had a size of 25.3 KB and showed how important it is to offer whistleblowers the option of sending long messages.
 
 
 Overall Express reduces the costs of maintaining a service for whistleblowers by 6$\times$ compared to previous work with the same objective.
 
+In Express, the communication cost were compared to that of Riposte and Pung. To do this, Eskandarian, Corrigan-Gibbs, Zaharia and Boneh set up three Google Cloud instances, each with 54 GB of RAM. All three run on the same data centre to minimise latency. These were used to evaluate Express, Pung and Riposte \ref{tab:communication}.
+
+\begin{table}[h!]
+\centering
+\caption{Communication cost for 1 million mailboxes}
+\label{tab:communication}
+\begin{tabular}{llll}
+\hline
+ & Express & Pung & Riposte \\ \hline
+Servers needed                             & 3       & 1     & 2       \\ \hline
+Client side                                & x       & 101$\times$x & 4631$\times$x  \\ \hline
+Server site                                & y       & 195$\times$x & 7161$\times$y  \\ \hline
+\end{tabular}
+\end{table}
+
+Since Express and Riposte have multiple servers, these two applications have an auditing protocol. For a fixed security parameter $\lambda$, Express' auditing protocol requires $O(\lambda)$ communication between parties. For the client side communication, time is constant $O(1)$ with less than 5 microseconds. Riposte on the other hand required $\Omega (\lambda \sqrt{n})$ communication and $\Omega (\sqrt{n})$ client computation. In addition, Riposte requires three servers instead of two like Express. This results in the new auditing scheme reducing the costs for the client by 8$\times$ for an installation with one million registered mailboxes. 
+
+\begin{table}[h!]
+\centering
+\caption{Express vs Riposte costs}
+\label{tab:riposte}
+\begin{tabular}{lll}
+\hline
+                           & Express & Riposte   \\ \hline
+Auditing protocol          & x       & 8$\times$x       \\ \hline
+Throughput                 & y       & 1.4-6.3$\times$y \\ \hline
+Process 1 million messages & z       & 5.9$\times$z     \\ \hline
+\end{tabular}
+\end{table}
+The table \ref{tab:riposte} shows that express achieved improvements in runtime compared to riposte across all operations. It is noticeable that Express not only has a faster auditing protocol, but also has a higher throughput. In the same time that Express can process 32 KB, Riposte only manages to process approximately one KB, measured with approximately 50,000 mailboxes. Pung is also slower than Express. The difference is particularly noticeable with small messages. With messages of 10KB, Pung is still about 1.3-2.6 times slower than Express, and with 32KB they are about the same speed. \\
+\textbf{Cost analysis} In their cost analysis, the authors limited themselves to the cloud infrastructure, so engineers are not included. The biggest cost factor is server operation. Public Google Cloud Platform pricing information can be used to determine the cost in dollars of sending one million messages. The calculated cost consists of the cost of hosting the servers for the length of tume required to process these messages, additioned to the data passed between the servers and back to the clients. The cost of Express for this million messages is 5.9 times less than Riposte. Pung is again significantly more expensive than Riposte. Sending one million messages costs over \$1,000 with Pung, although it only operates one server. The main costs are for data egress. Express requires significantly less money for the same number of messages, namely only \$0.05 and Riposte \$2.41. Since express only has to maintain two servers and not three like Riposte, it runs relatively cheaper per hour.
+
 
 \section{Conclusion}
 \label{sec:conclusion}
-We have shown that Express made progress in performance and reproducibility of privacy enhancing technologies. Its auditing and virtual addressing achieve efficient, scalable metadata privacy suitable for whistleblowing, journalism, or any communication system where metadata leakage is a risk. We also compared Express with three other systems that protect metadata from attackers. By comparing the calculation costs and computation times of the different applications, we found that Express became more cost-effective and time-efficient without sacrificing privacy guarantees.
+We have shown that Express made progress in performance and reproducibility of privacy enhancing technologies. Its auditing and virtual addressing achieve efficient, scalable metadata privacy suitable for whistleblowing, journalism, or any communication system where metadata leakage is a risk. We compated Express with three other systems, Pung, Riposte and Addra, that protect metadata from attackers. By comparing the calculation costs and computation times of the different applications, we found that Express is more cost-effective and time-efficient without sacrificing privacy guarantees. 
 
 \section{Use of generative digital tools}
-
 The use of AI tools must always be declared completely and transparently. 
 For examples of how to do this, please see the DMI guidance: \url{https://dmi.unibas.ch/fileadmin/user_upload/dmi/Studium/Computer_Science/Diverses/Wegleitungen/Dokumente_2023/Guidance_on_AI_in_teaching_in_Computer_Science.pdf}.
 
