@@ -1,0 +1,79 @@
+\documentclass[a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage[margin=3cm]{geometry}
+
+% German
+%\usepackage[ngerman]{babel}
+% English
+\usepackage[english]{babel}
+
+\usepackage[round,authoryear]{natbib}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage[hyphens]{url}
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+\usepackage{tabularx} % ist das erlaubt?
+\usepackage{float}
+
+
+\usepackage{lipsum}
+
+% German
+%\newtheorem{definition}{Definition}
+%\newtheorem{satz}{Satz}
+% English
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+
+% FRAGEN
+% zitat jedes einzelne mal angeben, zb bei Pung?
+% was gehört alles zu seiten 10-12, auch references? 
+% wie viele verwandte themen bei related work? dürfen es auch diese sein, die im paper schon diskutiert wurden? 
+
+% TODO
+% Addra zeiten in tabelle und generell vergleich 
+
+%\author{ (\textit{remember to remove ID for the first draft and peer review!})}
+\title{Peer Review on Orion}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Summary} % Summary of report including strengths and weaknesses
+This report discusses Fully Homomorphic Encryption (FHE) and how Orion, a recent framework, optimizes it. FHE is used for privacy-preserving machine learning, because it allows computation over encrypted data. When the computed ciphertext is decrypted, it corresponds to the same result as if the content had been decrypted first to plaintext and then calculated. \\
+Strengths: well-explained and easy to follow introduction and background.\\
+Weaknesses: at the moment still a bit short, lacking more in-depth information about the paper.
+
+\section{Clarity} %how well written is the report? How easy is it to follow the structure? How easy is it to read the text? 
+The scheme CKKS is mentioned in the introduction, which is a bit confusing as it is not clear if this is a Abkürzung or just the name. 
+
+Overall, the report is clear and easy to understand. It provides a good overview of the paper studied and explains the most important topics in an understandable way.
+
+\section{Soundness} %Background: is the report complete enough so you can follow its main part without seeking other sources? Main arguments: are they clear, logically presented, consistent, well supported?
+The background section 2.1 about Fully Homomorphic Encryption is really good explained, I understood everything the first time I read it, without having heard anything about this topic before. However, you could switch section 2.2 and 2.1, as the terms plaintext and ciphertext are only explained in section 2.2, but are already used in section 2.1. It might be more appropriate to remove section 2.4 on the Orion framework from the background and move it to a separate section, as it relates more to the main content. 
+
+In the lecture slides, it says you should have no section without text. You could add some sentences about what you are going to explain in the following chapters to avoid this. 
+
+As far as I understand, your own reproduction of the implementation does not belong in the report. You could move this section to the appendix and focus more on how the authors implemented Orion, for example. This would also mean that the table, which currently consists of many empty fields, would provide more information.
+
+\section{scholarship} %Related work: does it cite relevant and recent work and discusses it against the proposed work? References: are they complete and consistent?
+The statements are well supported by sources. They are correctly and consistently cited and the links work. In the references, I could only find the link to Orion's GitHub. It would be good if the paper on Orion were also cited, as it is the most important source.
+
+The lecture slides mention that the section on related work should not only list these, but also compare them. The section on related work provides a good overview of previous work on which Orion is based, as well as similar work. At the moment, however, it is still a little too much of a mere list. In addition, these works could be linked more closely with each other and with Express. 
+
+\section{Minor comments} %Small mistakes, spelling, grammar 
+\begin{itemize}
+    \item Sometimes you have split up words in the middle of the line, like "mul- tiplication"
+    \item The report is still a bit short with four sides, it should be 10-12 sides
+    \item Little spelling error: "no problems \underline{where} encountered"
+\end{itemize}
+
+\label{sec:intro}
+
+
+\end{document}

@@ -36,7 +36,7 @@
 % TODO
 % Addra zeiten in tabelle und generell vergleich 
 
-\author{Carina Fehr (\textit{remember to remove ID for the first draft and peer review!})}
+\author{ (\textit{remember to remove ID for the first draft and peer review!})}
 \title{Seminar Report on Express: Lowering the Cost of Metadata-hiding Communication with Cryptographic Privacy}
 \date{\today}
 
@@ -45,7 +45,7 @@
 \maketitle
 
 \begin{abstract}
-This report studies the reproducibility and performance of Express, a system designed for metadata-hiding communication. Using two servers, express ensures cryptographic security against at most one malicious server and an arbitrary number of malicious clients. The paper presents new protocols that offer low communication overhead, regardless of the number of users, and improved computation costs using symmetric key cryptography. Compared to Pung and Riposte, two previous cryptographically secure systems, Express achieves increased message throughput while maintaining strong privacy guarantees. This makes Express an ideal application for communication with whistleblowers.
+This report studies the reproducibility and performance of Express, a system designed for metadata-hiding communication. Using two servers, Express ensures cryptographic security against at most one malicious server and an arbitrary number of malicious clients. The paper presents new protocols that offer low communication overhead, regardless of the number of users, and improved computation costs using symmetric key cryptography. Compared to Pung and Riposte, two previous cryptographically secure systems, Express achieves increased message throughput while maintaining strong privacy guarantees. This makes Express an ideal application for communication with whistleblowers.
 \end{abstract}
 
 \section{Introduction}
@@ -109,9 +109,7 @@ When a client wants to write a message $m \in \mathbb{F}$ into a mailbox, they c
 However, the costs of these calculations are high. Each message sent by the client consists of a vector with length equal to the number of mailboxes in the system. As mentioned in section \ref{subsec:server}, this vector therefore quickly becomes very large, and the fact that both servers receive a vector further increases communication costs.        
 A better alternative is to use DPFs, which allows clients to send less data by compressing the vectors $w_a$ and $w_b$. As explained in \ref{subsec:DPF}, it is possible to split a function into two parts that, on their own, do not reveal anything about the function. We call the functions for the two servers A and B $f_A$ and $f_b$. When the functions are added together, they result in the function $f$. $f$ maps indices to function values, i.e. mailboxes to the messages they contain. The function can therefore be evaluated at any point to determine the contents of the corresponding mailbox. This point function can also be written as follows: $f_{i^*,m}: [N] \rightarrow \mathbb{F}$. $i^*$ is the only point at which this function does not output zero, but rather $m$. Clients are able to generate the shares $f_A$ and $f_B$. Added at any point $i \in [N]$, they result in the DPF: $f_A(i) + f_B(i) = f_{i^*,m}$. Individually, these do not tell an attacker anything about $i^*$, i.e. the mailbox being written to, or about $m$, i.e. the message being transmitted. \\
 The use of DPFs has reduced the size of sent messages to such an extent that, with a security parameter $\lambda$, each share of the function now has a length of $O(\lambda log N + \mid m \mid)$ bits. \\
-\textbf{Read from a mailbox.}
-
-To query the contents of a mailbox, the client sends the physical address $p$ as well as the virtual address of its mailbox to servers A and B. The servers check their page table to see if this is a correct combination of physical and virtual addresses. Then, each of them sends the contents of the corresponding mailbox $D_{Ap}$ and $D_{Bp}$. Afterwards, the servers empty this mailbox by setting the values of $D_{Ap}$ and $D_{Bp}$ to a new encryption of zero with the keys $K_{Ap}$ and $K_{Bp}$. The client uploaded these keys when creating the mailbox. The owner of the mailbox can now use their keys $k_{Ap}$ and $k_{Bp}$ to decrypt the received contents from both servers. They add these decrypted parts of the messages $m_{Ap}$ and $m_{Bp}$ and receive their secret message $m$. 
+\textbf{Read from a mailbox.} To query the contents of a mailbox, the client sends the physical address $p$ as well as the virtual address of its mailbox to servers A and B. The servers check their page table to see if this is a correct combination of physical and virtual addresses. Then, each of them sends the contents of the corresponding mailbox $D_{Ap}$ and $D_{Bp}$. Afterwards, the servers empty this mailbox by setting the values of $D_{Ap}$ and $D_{Bp}$ to a new encryption of zero with the keys $K_{Ap}$ and $K_{Bp}$. The client uploaded these keys when creating the mailbox. The owner of the mailbox can now use their keys $k_{Ap}$ and $k_{Bp}$ to decrypt the received contents from both servers. They add these decrypted parts of the messages $m_{Ap}$ and $m_{Bp}$ and receive their secret message $m$. 
 
 \section{Protecting Privacy} %auditing, malicious client protection, virtual addressing.
 %Explain how these mechanisms maintain security with minimal overhead.
