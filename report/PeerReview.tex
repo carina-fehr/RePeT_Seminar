@@ -20,24 +20,10 @@
 
 
 \usepackage{lipsum}
+\usepackage{ulem}
 
-% German
-%\newtheorem{definition}{Definition}
-%\newtheorem{satz}{Satz}
-% English
-\newtheorem{definition}{Definition}
-\newtheorem{theorem}{Theorem}
-
-% FRAGEN
-% zitat jedes einzelne mal angeben, zb bei Pung?
-% was gehört alles zu seiten 10-12, auch references? 
-% wie viele verwandte themen bei related work? dürfen es auch diese sein, die im paper schon diskutiert wurden? 
-
-% TODO
-% Addra zeiten in tabelle und generell vergleich 
-
-%\author{ (\textit{remember to remove ID for the first draft and peer review!})}
-\title{Peer Review on Orion}
+\author{Reproducibility and Practical Insights into Orion}
+\title{Peer Review}
 \date{\today}
 
 \begin{document}
@@ -45,32 +31,43 @@
 \maketitle
 
 \section{Summary} % Summary of report including strengths and weaknesses
-This report discusses Fully Homomorphic Encryption (FHE) and how Orion, a recent framework, optimizes it. FHE is used for privacy-preserving machine learning, because it allows computation over encrypted data. When the computed ciphertext is decrypted, it corresponds to the same result as if the content had been decrypted first to plaintext and then calculated. \\
-Strengths: well-explained and easy to follow introduction and background.\\
-Weaknesses: at the moment still a bit short, lacking more in-depth information about the paper.
+The reviewed report discusses Fully Homomorphic Encryption (FHE) and Orion, a recent framework. FHE is used for privacy-preserving machine learning, because it allows computation over encrypted data. When the computed ciphertext is decrypted, it corresponds to the same result as if the content had been decrypted first to cleartext and then calculated. However, FHE has high computational costs and is therefore not well suited for use in large neural networks. Orion optimizes the efficiency of running the computations with large datasets.\\
+Additionally, the report describes the steps taken to reproduce Orion, the results of the reproducibility study, and the difficulties encountered. \\
+Strengths: - well-explained and easy to follow introduction and background, clearly structured. \\
+- Good selection of many related works.\\
+Weaknesses: - at the moment still a bit short, lacking more in-depth information about the paper. \\
+- Too much focus on reproducibility of the implementation.
 
 \section{Clarity} %how well written is the report? How easy is it to follow the structure? How easy is it to read the text? 
-The scheme CKKS is mentioned in the introduction, which is a bit confusing as it is not clear if this is a Abkürzung or just the name. 
+Overall, the report is written clearly and easy to understand. It provides a good overview of the paper studied and explains the most important topics in an understandable way. However, especially in the main section, the report still seems a little too superficial.
 
-Overall, the report is clear and easy to understand. It provides a good overview of the paper studied and explains the most important topics in an understandable way.
+The scheme CKKS is mentioned in the introduction, which is a bit confusing as it is not completely clear if this is a abbreviation or just the name. There are also other abbreviation used like BGV and BFV whose full meaning is not mentioned. If this is known, it would be helpful if you wrote this down for better understanding. 
+
+In the section on the results of your implementation, you compare them with those from the paper and say "we can see". However, since the table of the original results is not included in your report, we cannot see anything and this paragraph is somewhat difficult to understand. 
+
+I think it is seen as a bit of bad style to have a section without text, as you have done in "2 Background". You could use a few sentences there to describe in a rough outline what you will explain in more detail in the following subchapters.
+
+Since your report is still quite short and not much information from the paper is shared in the two main sections, I find it difficult to understand Orion. I can't really contextualize the techniques explained in the background section, as there is no explanation of how and for what purpose they are used. 
 
 \section{Soundness} %Background: is the report complete enough so you can follow its main part without seeking other sources? Main arguments: are they clear, logically presented, consistent, well supported?
-The background section 2.1 about Fully Homomorphic Encryption is really good explained, I understood everything the first time I read it, without having heard anything about this topic before. However, you could switch section 2.2 and 2.1, as the terms plaintext and ciphertext are only explained in section 2.2, but are already used in section 2.1. It might be more appropriate to remove section 2.4 on the Orion framework from the background and move it to a separate section, as it relates more to the main content. 
+The background section 2.1 about Fully Homomorphic Encryption is really good explained, I understood everything the first time I read it, without having heard anything about this topic before. However, you could switch section 2.2 and 2.1, as the term "ciphertext" is only explained in section 2.2, but is already used in section 2.1. It might be more appropriate to remove section 2.4 on the Orion framework from the background and move it to a separate section, as it relates more to the main content. 
 
-In the lecture slides, it says you should have no section without text. You could add some sentences about what you are going to explain in the following chapters to avoid this. 
+Your own reproduction of the implementation does not belong in the report (I wasn't entirely sure about this either, so we asked Prof. Ciorba, she said it should go in the appendix at most). You could move this section to the appendix and focus in the main section more on how the authors implemented Orion, for example. This would also mean that the table, which currently consists of many empty fields, would contain more information. The "FLOPS" column is one of the only ones that is filled in and could therefore provide information, but there is no explanation anywhere of what "FLOPS" stands for, so I don't really understand the meaning of these numbers. The same problem applies to the conclusion, which currently only covers reproducibility. It would be helpful to add a few sentences at the end explaining the most important insights from the paper studied. 
 
-As far as I understand, your own reproduction of the implementation does not belong in the report. You could move this section to the appendix and focus more on how the authors implemented Orion, for example. This would also mean that the table, which currently consists of many empty fields, would provide more information.
+I briefly looked at your paper on Orion, and it still contains a lot of information on mathematical calculations that you could discuss further. You haven't explained anything about matrices or convolutions yet, and that seem to be important parts of Orion. Graphics on matrices could also help to illustrate the whole thing. If you wrote the main parts about that instead of about your own implementation, the report would better meet the requirements. 
 
-\section{scholarship} %Related work: does it cite relevant and recent work and discusses it against the proposed work? References: are they complete and consistent?
+I feel like I now have a good overview of the topic of FHE, with some information on calculations, implementation, and similar work. However, I feel like I haven't really gained a deeper, more detailed insight into the topic from the report. It sometimes seems as if the report is mostly about FHE, with Orion moving into the background. Since Orion relies on FHE, this is certainly justified to some extent, but placing more emphasis on Orion would make the report more consistent with the paper. It is explained roughly what Orion is doing, but not really how it is doing this. For example, the calculations with matrices or neural networks could be explained. It would probably be best to go through your paper again and discuss the topics it covers in great detail in the main section.
+
+\section{Scholarship} %Related work: does it cite relevant and recent work and discusses it against the proposed work? References: are they complete and consistent?
 The statements are well supported by sources. They are correctly and consistently cited and the links work. In the references, I could only find the link to Orion's GitHub. It would be good if the paper on Orion were also cited, as it is the most important source.
 
-The lecture slides mention that the section on related work should not only list these, but also compare them. The section on related work provides a good overview of previous work on which Orion is based, as well as similar work. At the moment, however, it is still a little too much of a mere list. In addition, these works could be linked more closely with each other and with Express. 
+During the lecture, it was mentioned that the section on related work should not only list these, but also compare them. Your section on related work provides a good overview of previous work on which Orion is based, as well as similar work, and explains them in appropriate detail. At the moment, however, it is still a little too much just a list. You mention a few differences, such as the fact that CryptoNets does not yet have bootstrapping. In addition, all the works could be linked more closely to each other and to Orion. 
 
 \section{Minor comments} %Small mistakes, spelling, grammar 
 \begin{itemize}
-    \item Sometimes you have split up words in the middle of the line, like "mul- tiplication"
-    \item The report is still a bit short with four sides, it should be 10-12 sides
-    \item Little spelling error: "no problems \underline{where} encountered"
+    \item Sometimes you have split up words in the middle of the line, like "mul- tiplication".
+    \item The report is still a bit short with four sides, it should be 10-12 sides.
+    \item Little spelling errors: "no problems \underline{where} encountered" / "We can access \sout{to} the source code". Otherwise, the language is very good and there are almost no mistakes.
 \end{itemize}
 
 \label{sec:intro}
