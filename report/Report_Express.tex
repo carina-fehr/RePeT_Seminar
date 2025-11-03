@@ -52,9 +52,9 @@ This report studies the reproducibility and performance of Express, a system des
 \label{sec:intro}
 In modern computer networks, secure communication is becoming increasingly crucial, given the growing capabilities of surveillance and metadata analysis. Although secure messaging apps like Signal and Threema, as well as Transport Layer Security (TLS), encrypt the content of sent messages, they do not protect metadata. It is possible to observe who sent and received messages, when and how often they communicated, and how much data they exchanged. This information is as sensitive as the messages themselves and should therefore not be leaked. However, it is challenging to keep all data hidden, as most internet-based communication services rely on some of the metadata to process messages. One option for hiding metadata would be to use a Tor browser or SecureDrop, but these are vulnerable to attacks by adversaries who control many network points.  Other existing systems for metadata-hiding either have too high communication cost to be practical, or they have low computation cost, but their security gets worse with every round of communication, also making them impractical.\\
 Express \citep{Eskandarian2021} offers a new communication option that keeps metadata private while ensuring feasible costs and calculation times. Although two servers are required, Express can still run with one malicious server. 
-The target audience for Express are whistleblowers. To receive messages, a journalist or anyone else who should receive information must register a mailbox with the two servers. The server assigns a 128-bit virtual address to each mailbox and maintains a page table in which it stores the corresponding physical address. The journalist can transmit these addresses to the whistleblower. Now the whistleblower can upload a message into the mailbox as a second client. No one except the mailbox owner will know that a message has been sent into this mailbox. Mailbox owners have to check their mailboxes regularly. Express does not hide when a client read from a mailbox, therefore a pattern in the checking intervals could reveal information about the activity of this mailbox. Additionally, Express must implement the option of cover traffic.  This will give whistleblowers plausible deniability and ensure that they cannot be accused of disclosing information simply for contacting an Express server. \\
+The target audience for Express are whistleblowers. To receive messages, a journalist or anyone else who should receive information must register a mailbox with the two servers. The server assigns a 128-bit virtual address to each mailbox and maintains a page table in which it stores the corresponding physical address. The journalist can transmit these addresses to the whistleblower. Now the whistleblower can upload a message into the mailbox as a second client. No one except the mailbox owner will know that a message has been sent into this mailbox. Mailbox owners have to check their mailboxes regularly. Express does not hide when a client read from a mailbox, therefore a pattern in the checking intervals could reveal information about the activity of this mailbox. Additionally, Express must implement the option of cover traffic.  This will give whistleblowers plausible deniability and ensure that they cannot be accused of disclosing information simply for contacting an Express server. In section \ref{sec:whistleblowing}, we will discuss in more detail how express can be used to communicate with whistleblowers.\\
 There are different types of attacks that Express must be resilient against.
-As all clients can read from all mailboxes, Express must re-encrypt the mailboxes each time a read occurs, providing encryption that only the owner can decrypt. No one else can identify the true content or find out which client is writing, even if they read the content of all mailboxes between every pair of writes. Another possible threat would be a malicious client targeting all mailboxes. They could overwrite all mailboxes with one message. Because the mailboxes can only hold one message at a time, any messages sent before this would be lost in a denial-of-service attack. The complete overview is divided between the two servers, which means that the servers alone cannot recognise that this is not a valid message. A new auditing protocol, presented in the paper, is used to prevent such attacks. However, a malicious client could still attack a single mailbox. In this case, the message would appear legitimate, and the server would be unable to detect or prevent the attack. Virtual addresses are used to prevent the original messages in the mailbox from being overwritten. The address range is so large that the probability of hitting a specific mailbox is negligible.
+As all clients can read from all mailboxes, Express must re-encrypt the mailboxes each time a read occurs, providing encryption that only the owner can decrypt. No one else can identify the true content or find out which client is writing, even if they read the content of all mailboxes between every pair of writes. Another possible threat would be a malicious client targeting all mailboxes. They could overwrite all mailboxes with one message. Because the mailboxes can only hold one message at a time, any messages sent before this would be lost in a denial-of-service attack. The complete overview is divided between the two servers, which means that the servers alone cannot recognise that this is not a valid message. A new auditing protocol, presented in the paper, is used to prevent such attacks. This auditing scheme runs with constant client side computations and reduces the costs for the client by 8$\times$ for an installation with one million registered mailboxes compared to previous work. In Chapter \ref{sec:relwork}, we provide a deeper insight into the performance and costs of Express and compare it with similar communication systems. However, a malicious client could still attack a single mailbox. In this case, the message would appear legitimate, and the server would be unable to detect or prevent the attack. Virtual addresses are used to prevent the original messages in the mailbox from being overwritten. The address range is so large that the probability of hitting a specific mailbox is negligible. We will explain in more detail in section \ref{sec:protecting} how express protects against these various attacks.
 
 \section{Background}
 \label{sec:background}
@@ -151,6 +151,7 @@ Internally, this is implemented by page tables. Express maintains an array of $n
 When a client wants to send a message, it creates a DPF with the shares $f_A$ and $f_B: 2^\lambda \rightarrow \mathbb{F}$ as if it were writing to the virtual address space. When creating the message, the client must know both the physical and virtual addresses of its destination mailbox, otherwise its DPF cannot be checked by the auditing protocol. Using its page table, the server can now evaluate the function only at locations where a mailbox actually exists. This prevents the servers from having to perform an exponential number of calculations, which would result in excessively long computation times. 
 
 \section{Express for Whistleblowing}
+\label{sec:whistleblowing}
 As explained in the previous chapters, Express offers a secure communication option.  In addition to the data transfer itself, two further safety issues should be considered. First, plausible deniability is required; secondly, we need a way to agree on a mailbox address. 
 
 \subsection{Cover traffic}
@@ -167,7 +168,7 @@ To select a mailbox address, the journalist and the whistleblower can meet in pe
 
 \label{sec:relwork}
 In this section we will introduce Pung, Riposte and Addra, three cryptographic metadata-hiding communication systems working with the concept of mailboxes. Additionally, we present SecureDrop \citep{securedrop}, a system developed for whistleblowing purposes which has been in use since 2013. Then we will compare their security and performance to Express. SecureDrop, Pung and Riposte were developed prior to Express and were referenced in the paper on Express. Addra, on the other hand, was developed later and uses Express as a source.\\ 
-SecureDrop handles the same problem as Express, but takes a different approach to privacy and does not offer cryptographic security. Pung addresses the same problem as Express, focusing on a solution for whistleblowers, but uses more computationally intensive public key cryptography. Addra extends the goal of metadata-hiding even further, presenting a solution for making secure and private voice calls \citep{Ahmad2021}.Riposte uses similar methods to Express, but is not suitable for whistleblowers because messages are not secret.
+SecureDrop handles the same problem as Express, but takes a different approach to privacy and does not offer cryptographic security. Pung addresses the same problem as Express, focusing on a solution for whistleblowers, but uses more computationally intensive public key cryptography. Addra extends the goal of metadata-hiding even further, presenting a solution for making secure and private voice calls \citep{Ahmad2021}. Riposte uses similar methods to Express, but is not suitable for whistleblowers because messages are not secret.
 
 \subsection{Pung} 
 Pung \citep{Angel2016} is designed to provide privacy guarantees of both message content and metadata. It focuses on protection against powerful global adversaries who may control the entire network infrastructure. This could be mass surveillance or state-sponsored attacks. In Pung, clients deposit and retrieve messages via untrusted key-value stores. Only one server is required. Pung provides privacy even when the server is malicious.  \\
@@ -202,40 +203,40 @@ In an era of ever-expanding technical possibilities and heightened interest in m
 This protection against malicious clients makes Express more robust in practical deployments while still maintaining a realistic trust model. Therefore, Express provides a balanced compromise between strong cryptographic privacy and operational practicality, making it more suitable for large-scale or real-world use.
 
 \subsubsection{Performance}
-Significant events prior to Express' research led to it testing larger messages than previous systems. In 2019, a whistleblower submitted a report concerning President Trump's interactions with the leader of Ukraine \citep{WhistleblowerComplaint}. The file had a size of 25.3 KB and demonstrated how important it is to offer whistleblowers the option of sending large messages.
+Significant events prior to Express's research led to it testing larger messages than previous systems. In 2019, a whistleblower submitted a report concerning President Trump's interactions with the leader of Ukraine \citep{WhistleblowerComplaint}. The file had a size of 25.3 KB and demonstrated how important it is to offer whistleblowers the option of sending large messages.
 
 Overall, Express reduces the cost of maintaining a service for whistleblowers by 6$\times$ compared to previous work with the same objective.
-In Express, communication costs were compared to those of Riposte and Pung. To do this, \citet{Eskandarian2021} set up three Google Cloud instances, each with 54 GB of RAM. All three instances ran on the same data center to minimise latency. They were used to evaluate Express, Pung and Riposte (See Table \ref{tab:communication}).
-
+In Express, communication costs were compared to those of Riposte and Pung. To do this, \citet{Eskandarian2021} set up three Google Cloud instances, two running the servers and one simluating the clients. Each of them has a 16-core intel Xeon processor with 64 GB of RAM. All three instances ran on the same data center to minimise latency. They were used to evaluate Express, Pung and Riposte (See Table \ref{tab:communication}). The table shows that providing security with only one server leads to high costs. It demonstrates that Express's DPFs and improved auditing protocol have a positive impact on communication costs.
 \begin{table}[h!]
 \centering
 \caption{Communication cost for 1 million mailboxes}
 \label{tab:communication}
 \begin{tabular}{llll}
 \hline
- & Express & Pung & Riposte \\ \hline
+ & Express & Riposte & Pung \\ \hline
 Servers needed                             & 3       & 1     & 2       \\ \hline
 Client side                                & x       & 101$\times$x & 4631$\times$x  \\ \hline
 Server site                                & y       & 195$\times$x & 7161$\times$y  \\ \hline
 \end{tabular}
 \end{table}
 
-Since both Express and Riposte have multiple servers, these two applications have an auditing protocol. For a fixed security parameter $\lambda$, the auditing protocol used by Express requires $O(\lambda)$ communication between parties. Client-side communication takes a constant time of $O(1)$ with less than 5 microseconds. Riposte, on the other hand, requires communication of order $\Omega (\lambda \sqrt{n})$ and client computation of order $\Omega (\sqrt{n})$. Additionally, Riposte requires three servers instead the two required by Express. This results in the new auditing scheme reducing the costs for the client by 8$\times$ for an installation with one million registered mailboxes. 
+Since both Express and Riposte have multiple servers, these two applications need an auditing protocol. For a fixed security parameter $\lambda$, the auditing protocol used by Express requires $O(\lambda)$ communication between parties. Client-side communication takes a constant time of $O(1)$ with less than 5 microseconds. Riposte, on the other hand, requires communication of order $\Omega (\lambda \sqrt{n})$ and client computation of order $\Omega (\sqrt{n})$. 
 
 \begin{table}[h!]
 \centering
-\caption{Express vs Riposte Server performance}
+\caption{Express vs Riposte performance}
 \label{tab:riposte}
 \begin{tabular}{lll}
 \hline
                            & Express & Riposte   \\ \hline
-Auditing protocol          & x       & 8$\times$x       \\ \hline
+Auditing protocol compute costs          & x       & 8$\times$x       \\ \hline
 Throughput                 & y       & 1.4-6.3$\times$y \\ \hline
-Process 1 million messages & z       & 5.9$\times$z     \\ \hline
+Cost of processing 1 million messages & z       & 5.9$\times$z     \\ \hline
 \end{tabular}
 \end{table}
-Table \ref{tab:riposte} shows that Express achieved improvements in runtime compared to Riposte across all operations. It is noticeable that Express not only has a faster auditing protocol, but also has a higher throughput. In the same time that Express can process 32 KB, Riposte only manages to process approximately one KB, measured with approximately 50,000 mailboxes. Pung is also slower than Express. The difference is particularly noticeable with small messages. With messages of 10KB, Pung is still about 1.3-2.6 times slower than Express, and with 32KB they are approximately the same speed. 
-\subsubsection{Cost analysis} In their cost analysis, the authors limited themselves to the cloud infrastructure, so engineers are not included. The biggest cost factor is server operation. Public Google Cloud Platform pricing information can be used to determine the cost in dollars of sending one million messages. This consists of the cost of hosting the servers for the time required to process the messages, plus the cost of the data passed between the servers and the clients. Express costs for one million messages 5.9 times less than Riposte. Pung is again significantly more expensive than Riposte. Sending one million messages costs over \$1,000 with Pung, despite it only operating one server. The main costs are for data egress. Express requires significantly less money for the same number of messages, namely only \$0.05 and Riposte \$2.41.  Since Express only has to maintain two servers rather than three, as Riposte does, it is relatively cheaper per hour.
+Table \ref{tab:riposte} shows that Express achieved improvements in runtime compared to Riposte across all operations. It is noticeable that Express not only has a faster auditing protocol, but also has a higher throughput. 
+Express's latency, i.e., the time from when a message is sent until it can be read, consists only of the time required to evaluate a DPF write and run the audit, otherwise, no synchronization between client and servers is necessary. In the same time that Express can process 32 KB, Riposte only manages to process approximately one KB, measured with approximately 50,000 mailboxes. Pung is also slower than Express. The difference is particularly noticeable with small messages. With messages of 10KB, Pung is still about 1.3-2.6$\times$ slower than Express, and with 32KB they are approximately the same speed. 
+\subsubsection{Cost analysis} In their cost analysis, the authors limited themselves to the cloud infrastructure, so engineers are not included. The biggest cost factor is server operation. Public Google Cloud Platform pricing information can be used to determine the cost in dollars of sending one million messages. This consists of the cost of hosting the servers for the time required to process the messages, plus the cost of the data passed between the servers and the clients. Express costs for one million messages 5.9$\times$ less than Riposte. Pung is again significantly more expensive than Riposte. Sending one million messages costs over \$1,000 with Pung, despite it only operating one server. The main costs are for data egress. Express requires significantly less money for the same number of messages, namely only \$0.05 and Riposte \$2.41.  Since Express only has to maintain two servers rather than three, as Riposte does, it is relatively cheaper per hour.
 
 
 \section{Conclusion}
@@ -249,7 +250,7 @@ Overall, Express contributes an important step toward making metadata-hiding mes
 \section{Use of generative digital tools}
 %The use of AI tools must always be declared completely and transparently. 
 %For examples of how to do this, please see the DMI guidance: \url{https://dmi.unibas.ch/fileadmin/user_upload/dmi/Studium/Computer_Science/Diverses/Wegleitungen/Dokumente_2023/Guidance_on_AI_in_teaching_in_Computer_Science.pdf}.
-I used DeepL to translate some sections that I didn't fully understand in english into german, and to translate individual sentences that I couldn't formulate in english.
+I used DeepL to translate some sections in my paper that I didn't fully understand in english into german, and to translate individual sentences that I couldn't formulate in english.
 
 
 \bibliographystyle{apalike}
@@ -258,7 +259,6 @@ I used DeepL to translate some sections that I didn't fully understand in englis
 
 
 \includegraphics[width=\textwidth]{wissensch_Redlichkeit_E_09-2023}
-
 
 \end{document}
 
