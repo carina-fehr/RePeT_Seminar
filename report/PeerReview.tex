@@ -15,9 +15,7 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 
-\usepackage{tabularx} % ist das erlaubt?
 \usepackage{float}
-
 
 \usepackage{lipsum}
 \usepackage{ulem}
@@ -54,20 +52,21 @@ The background section 2.1 about Fully Homomorphic Encryption is really good exp
 
 Your own reproduction of the implementation does not belong in the report (I wasn't entirely sure about this either, so we asked Prof. Ciorba, she said it should go in the appendix at most). You could move this section to the appendix and focus in the main section more on how the authors implemented Orion, for example. This would also mean that the table, which currently consists of many empty fields, would contain more information. The "FLOPS" column is one of the only ones that is filled in and could therefore provide information, but there is no explanation anywhere of what "FLOPS" stands for, so I don't really understand the meaning of these numbers. The same problem applies to the conclusion, which currently only covers reproducibility. It would be helpful to add a few sentences at the end explaining the most important insights from the paper studied. 
 
-I briefly looked at your paper on Orion, and it still contains a lot of information on mathematical calculations that you could discuss further. You haven't explained anything about matrices or convolutions yet, and that seem to be important parts of Orion. Graphics on matrices could also help to illustrate the whole thing. If you wrote the main parts about that instead of about your own implementation, the report would better meet the requirements. 
+I briefly looked at your original paper on Orion, and it still contains a lot of information on mathematical calculations that you could discuss further. You haven't explained anything about matrices or convolutions yet, and that seem to be important parts of Orion. Graphics on matrices could also help to illustrate the whole thing. If you wrote the main parts about that instead of about your own implementation, the report would better meet the requirements. 
 
 I feel like I now have a good overview of the topic of FHE, with some information on calculations, implementation, and similar work. However, I feel like I haven't really gained a deeper, more detailed insight into the topic from the report. It sometimes seems as if the report is mostly about FHE, with Orion moving into the background. Since Orion relies on FHE, this is certainly justified to some extent, but placing more emphasis on Orion would make the report more consistent with the paper. It is explained roughly what Orion is doing, but not really how it is doing this. For example, the calculations with matrices or neural networks could be explained. It would probably be best to go through your paper again and discuss the topics it covers in great detail in the main section.
 
 \section{Scholarship} %Related work: does it cite relevant and recent work and discusses it against the proposed work? References: are they complete and consistent?
-The statements are well supported by sources. They are correctly and consistently cited and the links work. In the references, I could only find the link to Orion's GitHub. It would be good if the paper on Orion were also cited, as it is the most important source.
+The statements are well supported by sources. They are correctly and consistently cited and the links work. In the references, I could only find the link to Orion's GitHub. It would be good if the paper on Orion were also cited, as it is the most important source of the report.
 
 During the lecture, it was mentioned that the section on related work should not only list these, but also compare them. Your section on related work provides a good overview of previous work on which Orion is based, as well as similar work, and explains them in appropriate detail. At the moment, however, it is still a little too much just a list. You mention a few differences, such as the fact that CryptoNets does not yet have bootstrapping. In addition, all the works could be linked more closely to each other and to Orion. 
 
 \section{Minor comments} %Small mistakes, spelling, grammar 
 \begin{itemize}
     \item Sometimes you have split up words in the middle of the line, like "mul- tiplication".
-    \item The report is still a bit short with four sides, it should be 10-12 sides.
-    \item Little spelling errors: "no problems \underline{where} encountered" / "We can access \sout{to} the source code". Otherwise, the language is very good and there are almost no mistakes.
+    \item the word "PlainTensor" sticks out on the right side of the text, which is a bit unusual. It might be better to put it on a new line.
+    \item The report is still a bit short with four pages, the introductory slides state it should be 10-12 pages.
+    \item Two small spelling errors: "no problems w\sout{h}ere encountered" / "We can access \sout{to} the source code". Otherwise, the language is very good and there are almost no mistakes.
 \end{itemize}
 
 \label{sec:intro}
