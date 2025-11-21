@@ -3,7 +3,7 @@ import re
 import pandas as pd
 
 LOG_DIR = "./logs"
-OUTPUT_FILE = "express_results_combined.xlsx"
+OUTPUT_FILE = "results_combined.xlsx"
 
 rows_list = [100, 1000, 10000, 100000, 500000, 1000000]
 datasizes = [1000, 4000, 16000, 32000, 64000]
@@ -12,12 +12,11 @@ client = re.compile(r"client compute time: ([\d.]+)(ms|s)")
 write_op = re.compile(r"average write operation time .*?: ([\d.]+)(ms|s)")
 read_op = re.compile(r"average read operation time .*?: ([\d.]+)(ms|s)")
 
-def convert_to_ms(value, unit):
-    """Convert seconds to ms if needed."""
+def convert_to_ms(value, unit): # Convert seconds to ms if needed
     value = float(value)
     if unit == "s":
         return value * 1000.0
-    return value  # already ms
+    return value  # already in ms
 
 def parse_log(filepath):
     client_times = []
@@ -41,7 +40,13 @@ def parse_log(filepath):
                 if m:
                     avg_read = convert_to_ms(m.group(1), m.group(2))
 
-    avg_client_time = sum(client_times) / len(client_times) if client_times else None
+    # Remove first entry before calculating average because this would falsify result
+    if len(client_times) > 1:
+        times_no_first = client_times[1:]
+        avg_client_time = sum(times_no_first) / len(times_no_first)
+    else:
+        avg_client_time = None
+
     return avg_client_time, avg_write, avg_read
 
 
