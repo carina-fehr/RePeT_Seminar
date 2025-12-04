@@ -21,6 +21,7 @@ The following files were used for the reproduction and evaluation:
 Directories containing log files:
 - logs_miniHPC: contains the generated log files when running on the HPC cluster
 - logs_VM: contains the generated log files when running on the virtual machine (VirtualBox with ubuntu)
+- logs_oneThread: contains the generated log files when using only one thread
 
 ## launchLatency.sh
 This shell script is used to automatize the commands proposed on the github repository. The client runs a write followed by a read eleven times in a row and reports the average as well as the client computation time for each write. The script writes this output into log files, named client_nrRows_xKB.log. It is possible to run it with multiple row arguments.
@@ -114,7 +115,7 @@ After everything is done on the cluster, copy the files back to the local Deskto
 ```
 
 # Results
-Here I will compare the  evaluation regarding latency and throughput. I evaluated the same parameters as the authors in their published data to be able to compare. 
+Here I will compare the  evaluation regarding latency and throughput. I evaluated the same parameters as the authors in their published data to be able to compare. For the "numCores" argument, they used 32 threads. Because it said this number should be 1x or 2x the cores of the system, and because I was not able to batch a job with 32 threads, I used 16 threads.
 It was to be expected that the results of the VM would be much worse and significantly less meaningful than those of the miniHPC. The VM has far fewer computing resources available and is already significantly slower than the laptop itself in normal use. In addition, its performance is affected by background processes and other programs running on the Mac. These problems do not exist on the miniHPC, which is why these results are primarily considered.
 
 
@@ -131,12 +132,15 @@ When the number of Mailboxes becomes very large, the time for writes grows much 
 
 The VM shows significantly poorer performance. It is only possible for small parameters, after that, the VM reaches its limit and freezes. It takes a lot longer for the computations, reaching over a seconds for a write request, while miniHPC still takes less than 300 milliseconds. 
 
+For multithreading, i have not tested all combinations of mailboxes and message sizes with just one thread. The paper on Express does not mention parallelism, so this does not seem to be the most important analysis goal. It is noticeable that the average client time remains the same, but the write and read times increase due to the reduction to one thread. The write time is approximately doubled across all tests. For the read time, the difference between one and 16 threads increases the more mailboxes there are in the system. With only 100, the times are still similar, but with 100,000, they are already about four times higher with only one thread. 
+
 ## Throughput
 Looking at throughput, the paper and my experiments show a similar trend. However, across all combinations of arguments, the original evaluation usually shows slightly better results. At the beginning, my evaluation is far better than the original results. This is because the calculations for a small number of mailboxes are not yet complex, and the system is therefore communication-bound. Since I am running everything on localhost, this is very fast. After that, the calculations become more complex and the system switches to computation-bound by DPF evaluation.
 ![alt text](md_images/image-1.png)
 
 Comparing those results to the evaluation on the virtual machine, it is obvious that the VM performs a lot worse. With 1Kb and 25'000 messages, the VM processes less than 1 write per second (Express 31 writes). With more mailboxes, the VM freezes and needs to be restarted.
 
+With only one thread, the throughput is much lower. The speedup achieved by the 16 threads is around 12-15. This can be seen with both 1 and 32 Kb, which shows that Express can make significantly more requests in the same amount of time. 
 
 # Problems
 ### Express on MacOS
