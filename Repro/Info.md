@@ -108,6 +108,11 @@ Then batch a job:
 [fehr0006@dmi-cl-login ~]$ sbatch jobscript.sh
 ```
 
+After everything is done on the cluster, copy the files back to the local Desktop: 
+```bash 
+(base) carinafehr@carinas-air Desktop % scp -r fehr0006@cl-login.dmi.unibas.ch:~/logs .
+```
+
 # Results
 Here I will compare the  evaluation regarding latency and throughput. I evaluated the same parameters as the authors in their published data to be able to compare. 
 It was to be expected that the results of the VM would be much worse and significantly less meaningful than those of the miniHPC. The VM has far fewer computing resources available and is already significantly slower than the laptop itself in normal use. In addition, its performance is affected by background processes and other programs running on the Mac. These problems do not exist on the miniHPC, which is why these results are primarily considered.
