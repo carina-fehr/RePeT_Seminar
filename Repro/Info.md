@@ -115,16 +115,17 @@ After everything is done on the cluster, copy the files back to the local Deskto
 ```
 
 # Results
-Here I will compare the  evaluation regarding latency and throughput. I evaluated the same parameters as the authors in their published data to be able to compare. For the "numCores" argument, they used 32 threads. Because it said this number should be 1x or 2x the cores of the system, and because I was not able to batch a job with 32 threads, I used 16 threads.
+Here I will compare the  evaluation regarding latency and throughput. I evaluated the same parameters as the authors in their published data to be able to compare. For the "numCores" argument, they used 32 threads. Because it said this number should be 1x or 2x the cores of the system, and because I was not able to batch a job with 32 threads, I used 16 threads in the jobscript and also 32 threads as argument for "numThreads".
+
 It was to be expected that the results of the VM would be much worse and significantly less meaningful than those of the miniHPC. The VM has far fewer computing resources available and is already significantly slower than the laptop itself in normal use. In addition, its performance is affected by background processes and other programs running on the Mac. These problems do not exist on the miniHPC, which is why these results are primarily considered.
 
 
 Overall, my evaluation is a bit slower than the author's, but shows a similar trend in terms of increasing the number of mailboxes and message size. For both the latency and thorughput, the virtual machine produces horrible results, showing that high performance hardware is needed to realize Express.
 
 ## Latency
-The average client time in Express is constant with about 20ms. In the excel file can be seen that this is really different in my evaluation, the average time rises fast. When looking at the results however, I saw that this is mostly due to the first entry. If this is taken out of the calculations, this changes rapidly. The average time is now also constant over different message and mailbox sizes, with about 3ms. The reason for this can be found in the Express github repository: "the first write/read are slowed down by the setup process and omitted from the average". For the averages in the excel file, I therefore also omitted the first entries. 
+The average client time in Express is constant with about 20ms. When I calculated this first, it was really different in my evaluation, the average time rises fast. When looking at the results however, I saw that this is mostly due to the first entry. If this is taken out of the calculations, this changes rapidly. The average time is now also constant over different message and mailbox sizes, with about 3ms. The reason for this can be found in the Express github repository: "the first write/read are slowed down by the setup process and omitted from the average". For the averages in the excel file, I therefore also omitted the first entries. 
 
-This is probably also the reason for the write and read times being a bit lower for small mailboxes sizes. But this difference is in the range of about 15-30 milliseconds, which is not much. For larger parameters, the time in milliseconds of my evaluation gets very close to the author's. Like expected, the time required for a write request is lower, the lower the message size is.  
+The write and read times being are a bit lower for small mailboxes sizes in my evaluation. For larger parameters, the time in milliseconds of my evaluation gets very close to the author's. This is probably because there is no network communication in my evaluation. Like expected, the time required for a write request is lower, the lower the message size is.  
 ![alt text](md_images/image-3.png)
 
 When the number of Mailboxes becomes very large, the time for writes grows much faster than for reads, both in my and the author's evaluations. This is because Express has fast reads but expensive writes. For every mailbox one DPF has to be evaluated, so the total latency increases. 
