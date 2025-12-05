@@ -4,9 +4,11 @@ Github link to original Express repository: https://github.com/SabaEskandarian/E
 code commit hash: 3c06848bef4bfcde2fd56cb82b484bcfe5526641
  
 
-Evaluations done on my Mac with: Processor: 1.6 GHz Dual-Core Intel Core i5
+Evaluations done on my Mac with: Processor: 1.6 GHz Dual-Core Intel Core i5  
 Graphics: Intel UHD Graphics 617 1536 MB  
+macOS kernel version: 23.6.0  
 Additionally on the miniHPC Cluster of UniBas (https://hpc.dmi.unibas.ch/research/minihpc/)
+on Intel xeon CPU
 
 
 # Information about files
@@ -24,11 +26,15 @@ Directories containing log files:
 
 ## launchLatency.sh
 This shell script is used to automatize the commands proposed on the github repository. The client runs a write followed by a read eleven times in a row and reports the average as well as the client computation time for each write. The script writes this output into log files, named client_nrRows_xKB.log. It is possible to run it with multiple row arguments.
-Change the path CODE_DIR in the script to the path where the code is stored. 
+Change the path CODE_DIR in the script to the path where the code is stored.  
+Rows evaluated: 100, 1000, 10'000, 100'000, 500'000, 1'000'000  
+Datasize evaluated: 1'000, 4'000, 16'000, 32'000, 64'000
 
 ## launchTP.sh
 This script is essentially doing the same thing as launchLatency.sh, but it measures throughput, so in the command for the client 'throughput' is added to the arguments. This will cause the client to send numThreads requests in parallel as fast as it can. The total elapsed time and total number of writes processed every 10 seconds after setup will be printed into log files.
-The resulting log files are called TP_nrRows_xKB.log. 
+The resulting log files are called TP_nrRows_xKB.log.  
+Rows evaluated for throughput 1KB: 1'000, 10'000, 25'000, 50'000, 75'000, 100'000, 200'000, 300'000, 400'000, 500'000  
+Rows for 32KB: 1'000, 5'000, 10'000, 25'000, 50'000
 
 ## buildscript.sh
 This file is used on the HPC cluster. The precompiled files do not work there. But there is no internet on the cluster, so we have to preinstall everything needed and then compile everything on the cluster (more details in problems).
